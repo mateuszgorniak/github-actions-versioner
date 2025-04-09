@@ -77,3 +77,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔒 Security & Privacy
+
+For detailed information about security and privacy, please refer to:
+- [Security Policy](SECURITY.md) - Information about security measures, vulnerability reporting, and supported versions
+- [Privacy Policy](PRIVACY.md) - Details about data collection, processing, and retention
