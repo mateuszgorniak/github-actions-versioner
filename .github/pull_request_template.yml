@@ -1,0 +1,23 @@
+## 📝 Description
+<!-- Describe your changes -->
+
+## 🏷️ Type of changes
+<!-- Check the type of changes you're making -->
+- [ ] New feature
+- [ ] Bug fix
+- [ ] Refactoring
+- [ ] Documentation
+- [ ] Tests
+
+## ✅ Checklist
+- [ ] I have added/modified tests
+- [ ] I have updated documentation
+- [ ] I have verified the code works
+- [ ] I have checked for regressions
+- [ ] I have reviewed the [Security Policy](SECURITY.md) and [Privacy Policy](PRIVACY.md) and the introduced changes don't introduce new security vulnerabilities or affect data privacy
+
+## 🔒 Security & Privacy Considerations
+<!-- Describe any security and privacy implications of your changes -->
+
+## ℹ️ Additional information
+<!-- Add any additional information that might be helpful for reviewers -->
