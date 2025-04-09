@@ -1,0 +1,17 @@
+name: 'GitHub Actions Versioner'
+description: 'Checks for outdated GitHub Actions versions in workflow files'
+author: 'Mateusz Górniak'
+
+inputs:
+  workflow_path:
+    description: 'Path to the workflow file to check'
+    required: true
+    default: '.github/workflows'
+
+outputs:
+  outdated_actions:
+    description: 'JSON array of outdated actions found'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
