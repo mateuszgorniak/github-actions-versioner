@@ -1,36 +1,78 @@
-# GitHub Actions Versioner 🚀
+# GitHub Actions Versioner 🔄
 
-Keep your GitHub Actions dependencies under control! 🎯
+A GitHub Action that checks if your GitHub Actions dependencies are up to date and suggests updates. 🚀
 
-A collection of GitHub Actions for managing and maintaining GitHub Actions workflows.
-Generate reports and discover which dependencies need updating to keep your workflows secure and efficient. 🚀
+## ✨ Features
 
-## 📦 Available Actions
+- Scans your workflow files for GitHub Actions dependencies
+- Checks the latest available version for each action
+- Identifies outdated actions and suggests updates
+- Supports both version tags and branch references
+- Provides detailed output with file locations and line numbers
 
-### Versioner
-
-A GitHub Action that helps identify outdated GitHub Actions versions in your workflow files.
-Never miss an important update again! 🔍
-
-#### Usage
+## Usage
 
 ```yaml
-uses: mateuszgorniak/github-action-versioner/actions/versioner@v1
+- name: Check GitHub Actions Versions
+  uses: mateuszgorniak/github-actions-versioner@v1
+  with:
+    token: ${{ secrets.GITHUB_TOKEN }}
+    workflow_path: .github/workflows  # Optional, defaults to .github/workflows
 ```
+
+## Inputs
+
+| Name | Description | Required | Default |
+|------|-------------|----------|---------|
+| `token` | GitHub token for API access | Yes | - |
+| `workflow_path` | Path to workflow files | No | `.github/workflows` |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| `status` | Status of the check |
+| `outdated_actions` | List of outdated actions |
+
+## Example Output
+
+```
+Found 5 workflow files
+Found 12 action dependencies
+Found 8 unique actions
+
+Dependency Report:
+actions/checkout@v2 (workflow.yml:1) - ⚠️ update available: v2 -> v3
+actions/setup-node@v3 (workflow.yml:2) - ✅ up to date
+actions/cache@v2 (workflow.yml:3) - ⚠️ update available: v2 -> v3
+```
+
+## 🛠️ Development
+
+1. Install dependencies:
+   ```bash
+   cd actions/versioner
+   npm install
+   ```
+
+2. Build the action:
+   ```bash
+   npm run build
+   npm run package
+   ```
+
+3. Run tests:
+   ```bash
+   npm test
+   ```
+
+## 🤔 Who's using this?
+
+- [Your project name here] - Add your project by submitting a PR!
 
 ## 🤝 Contributing
 
-Want to contribute? Check out our [Contributing Guide](CONTRIBUTING.md) to learn how to set up your development environment and make changes.
-
-## 👥 Who's using this?
-
-Are you using GitHub Actions Versioner in your company or project? Add your name to this list!
-
-### Companies
-- [Your Company Name](https://your-company-website.com)
-
-### Projects
-- [Your Project Name](https://your-project-url.com)
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
