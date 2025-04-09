@@ -1,5 +1,12 @@
 # GitHub Actions Versioner 🔄
 
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/mateuszgorniak?style=for-the-badge)](https://github.com/sponsors/mateuszgorniak)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mateuszgorniak/github-actions-versioner?style=for-the-badge)](https://github.com/mateuszgorniak/github-actions-versioner/releases)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mateuszgorniak/github-actions-versioner/ci.yml?style=for-the-badge)](https://github.com/mateuszgorniak/github-actions-versioner/actions)
+[![License](https://img.shields.io/github/license/mateuszgorniak/github-actions-versioner?style=for-the-badge)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/mateuszgorniak/github-actions-versioner?style=for-the-badge)](https://github.com/mateuszgorniak/github-actions-versioner/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/mateuszgorniak/github-actions-versioner?style=for-the-badge)](https://github.com/mateuszgorniak/github-actions-versioner/issues)
+
 A GitHub Action that checks if your GitHub Actions dependencies are up to date and suggests updates. 🚀
 
 ## ✨ Features
@@ -83,3 +90,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For detailed information about security and privacy, please refer to:
 - [Security Policy](SECURITY.md) - Information about security measures, vulnerability reporting, and supported versions
 - [Privacy Policy](PRIVACY.md) - Details about data collection, processing, and retention
+
+## ⚠️ Disclaimer
+
+This action is provided "as is" without warranty of any kind, either express or implied. The maintainers of this action are not responsible for any damages or liabilities that may arise from its use.
+
+## 💰 Funding
+
+If you find this project useful and would like to support its development, you can:
+
+- [Sponsor me on GitHub](https://github.com/sponsors/mateuszgorniak) - Support the project with a monthly contribution
+- [Star the repository](https://github.com/mateuszgorniak/github-actions-versioner) - Help increase the project's visibility
+
+Your support helps maintain and improve the project. Thank you! 🙏
