@@ -17,8 +17,23 @@ class VersionChecker {
             auth: token
         });
     }
+    getRefSha(owner, repo, ref) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { data } = yield this.octokit.git.getRef({
+                    owner,
+                    repo,
+                    ref: `tags/${ref}`
+                });
+                return data.object.sha;
+            }
+            catch (error) {
+                throw new Error(`Failed to get SHA for ref ${ref}: ${error}`);
+            }
+        });
+    }
     /**
-     * Checks if the given dependency is up to date
+     * Checks if the given dependency is up to date by comparing commit SHAs
      * @param dependency Compressed dependency to check
      * @returns Promise with version check result
      */
@@ -33,10 +48,18 @@ class VersionChecker {
                 if (!data || data.length === 0) {
                     throw new Error('No tags found');
                 }
+                const latestVersion = data[0].name;
+                const latestVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, latestVersion);
+                let currentVersionSha;
+                if (dependency.version) {
+                    currentVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, dependency.version);
+                }
                 return {
                     owner: dependency.owner,
                     repo: dependency.repo,
-                    latestVersion: data[0].name
+                    latestVersion,
+                    currentVersionSha,
+                    latestVersionSha
                 };
             }
             catch (error) {

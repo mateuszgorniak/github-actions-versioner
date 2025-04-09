@@ -25,12 +25,16 @@ describe('DependencyVersionMerger', () => {
     {
       owner: 'actions',
       repo: 'checkout',
-      latestVersion: 'v4'
+      latestVersion: 'v4',
+      currentVersionSha: 'sha-v3',
+      latestVersionSha: 'sha-v4'
     },
     {
       owner: 'actions',
       repo: 'setup-node',
-      latestVersion: 'v3'
+      latestVersion: 'v3',
+      currentVersionSha: 'sha-v3',
+      latestVersionSha: 'sha-v3'
     }
   ];
 
@@ -45,11 +49,15 @@ describe('DependencyVersionMerger', () => {
     expect(result[0]).toEqual({
       ...mockDependencies[0],
       latestVersion: 'v4',
+      currentVersionSha: 'sha-v3',
+      latestVersionSha: 'sha-v4',
       isUpToDate: false
     });
     expect(result[1]).toEqual({
       ...mockDependencies[1],
       latestVersion: 'v3',
+      currentVersionSha: 'sha-v3',
+      latestVersionSha: 'sha-v3',
       isUpToDate: true
     });
   });
@@ -59,6 +67,8 @@ describe('DependencyVersionMerger', () => {
 
     expect(result).toHaveLength(2);
     expect(result[0].latestVersion).toBeUndefined();
+    expect(result[0].currentVersionSha).toBeUndefined();
+    expect(result[0].latestVersionSha).toBeUndefined();
     expect(result[0].isUpToDate).toBeUndefined();
   });
 });

@@ -8,7 +8,7 @@ export class DependencyReporter {
       const status = dep.isUpToDate
         ? '✅ up to date'
         : dep.latestVersion
-          ? `⚠️ update available: ${dep.version} -> ${dep.latestVersion}`
+          ? `⚠️ update available: ${dep.version} (${dep.currentVersionSha?.substring(0, 7)}) -> ${dep.latestVersion} (${dep.latestVersionSha?.substring(0, 7)})`
           : '❌ version check failed';
 
       reportLines.push(

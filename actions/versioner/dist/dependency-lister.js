@@ -11,7 +11,8 @@ class DependencyLister {
                 uniqueDeps.add(key);
                 unique.push({
                     owner: dep.owner,
-                    repo: dep.repo
+                    repo: dep.repo,
+                    version: dep.version
                 });
             }
         }

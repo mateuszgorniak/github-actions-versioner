@@ -13,23 +13,16 @@ describe('DependencyLister', () => {
         },
         {
             owner: 'actions',
-            repo: 'checkout',
-            version: 'v3',
-            lineNumber: 2,
-            filePath: 'workflow2.yml'
-        },
-        {
-            owner: 'actions',
             repo: 'setup-node',
             version: 'v3',
-            lineNumber: 3,
+            lineNumber: 2,
             filePath: 'workflow1.yml'
         },
         {
             owner: 'actions',
-            repo: 'setup-node',
-            version: 'v4',
-            lineNumber: 4,
+            repo: 'checkout',
+            version: 'v3',
+            lineNumber: 3,
             filePath: 'workflow2.yml'
         }
     ];
@@ -40,8 +33,8 @@ describe('DependencyLister', () => {
         const result = lister.listUniqueDependencies(mockDependencies);
         expect(result).toHaveLength(2);
         expect(result).toEqual([
-            { owner: 'actions', repo: 'checkout' },
-            { owner: 'actions', repo: 'setup-node' }
+            { owner: 'actions', repo: 'checkout', version: 'v3' },
+            { owner: 'actions', repo: 'setup-node', version: 'v3' }
         ]);
     });
     it('should handle empty array', () => {

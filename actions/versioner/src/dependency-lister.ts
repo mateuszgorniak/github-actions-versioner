@@ -3,6 +3,7 @@ import { ActionDependency } from './dependency-analyzer';
 export interface UniqueDependency {
   owner: string;
   repo: string;
+  version?: string;
 }
 
 export class DependencyLister {
@@ -16,7 +17,8 @@ export class DependencyLister {
         uniqueDeps.add(key);
         unique.push({
           owner: dep.owner,
-          repo: dep.repo
+          repo: dep.repo,
+          version: dep.version
         });
       }
     }

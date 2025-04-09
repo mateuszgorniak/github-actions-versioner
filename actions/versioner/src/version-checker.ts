@@ -18,6 +18,8 @@ export interface LatestVersion {
   owner: string;
   repo: string;
   latestVersion: string;
+  currentVersionSha?: string;
+  latestVersionSha: string;
 }
 
 export class VersionChecker {
@@ -29,8 +31,21 @@ export class VersionChecker {
     });
   }
 
+  private async getRefSha(owner: string, repo: string, ref: string): Promise<string> {
+    try {
+      const { data } = await this.octokit.git.getRef({
+        owner,
+        repo,
+        ref: `tags/${ref}`
+      });
+      return data.object.sha;
+    } catch (error) {
+      throw new Error(`Failed to get SHA for ref ${ref}: ${error}`);
+    }
+  }
+
   /**
-   * Checks if the given dependency is up to date
+   * Checks if the given dependency is up to date by comparing commit SHAs
    * @param dependency Compressed dependency to check
    * @returns Promise with version check result
    */
@@ -46,10 +61,28 @@ export class VersionChecker {
         throw new Error('No tags found');
       }
 
+      const latestVersion = data[0].name;
+      const latestVersionSha = await this.getRefSha(
+        dependency.owner,
+        dependency.repo,
+        latestVersion
+      );
+
+      let currentVersionSha: string | undefined;
+      if (dependency.version) {
+        currentVersionSha = await this.getRefSha(
+          dependency.owner,
+          dependency.repo,
+          dependency.version
+        );
+      }
+
       return {
         owner: dependency.owner,
         repo: dependency.repo,
-        latestVersion: data[0].name
+        latestVersion,
+        currentVersionSha,
+        latestVersionSha
       };
     } catch (error) {
       throw new Error(
