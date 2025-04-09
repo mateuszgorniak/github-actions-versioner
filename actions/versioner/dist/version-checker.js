@@ -20,12 +20,24 @@ class VersionChecker {
     getRefSha(owner, repo, ref) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { data } = yield this.octokit.git.getRef({
-                    owner,
-                    repo,
-                    ref: `tags/${ref}`
-                });
-                return data.object.sha;
+                // First try to get the ref as a tag
+                try {
+                    const { data } = yield this.octokit.git.getRef({
+                        owner,
+                        repo,
+                        ref: `tags/${ref}`
+                    });
+                    return data.object.sha;
+                }
+                catch (error) {
+                    // If tag not found, try to get the ref as a branch
+                    const { data } = yield this.octokit.git.getRef({
+                        owner,
+                        repo,
+                        ref: `heads/${ref}`
+                    });
+                    return data.object.sha;
+                }
             }
             catch (error) {
                 throw new Error(`Failed to get SHA for ref ${ref}: ${error}`);

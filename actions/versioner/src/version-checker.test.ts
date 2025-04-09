@@ -32,8 +32,10 @@ describe('VersionChecker', () => {
       ]
     });
     mockGetRef.mockImplementation(({ ref }) => {
-      const sha = ref === 'tags/v4' ? 'sha-v4' : 'sha-v3';
-      return Promise.resolve({ data: { object: { sha } } });
+      if (ref === 'tags/v4') return Promise.resolve({ data: { object: { sha: 'sha-v4' } } });
+      if (ref === 'tags/v3') return Promise.resolve({ data: { object: { sha: 'sha-v3' } } });
+      if (ref === 'heads/main') return Promise.resolve({ data: { object: { sha: 'sha-main' } } });
+      throw new Error('Not Found');
     });
     checker = new VersionChecker(mockToken);
   });
@@ -65,6 +67,30 @@ describe('VersionChecker', () => {
       owner: 'actions',
       repo: 'checkout',
       ref: 'tags/v3'
+    });
+  });
+
+  it('should handle branch references', async () => {
+    const branchDependency: UniqueDependency = {
+      owner: 'actions',
+      repo: 'checkout',
+      version: 'main'
+    };
+
+    const result = await checker.checkVersion(branchDependency);
+
+    expect(result).toEqual({
+      owner: 'actions',
+      repo: 'checkout',
+      latestVersion: 'v4',
+      currentVersionSha: 'sha-main',
+      latestVersionSha: 'sha-v4'
+    });
+
+    expect(mockGetRef).toHaveBeenCalledWith({
+      owner: 'actions',
+      repo: 'checkout',
+      ref: 'heads/main'
     });
   });
 
