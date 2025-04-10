@@ -85,7 +85,9 @@ describe('VersionChecker', () => {
         expect(mockListTags).toHaveBeenCalledWith({
             owner: 'actions',
             repo: 'checkout',
-            per_page: 1
+            per_page: 1,
+            sort: 'created',
+            direction: 'desc'
         });
         expect(mockGetRef).toHaveBeenCalledWith({
             owner: 'actions',
@@ -129,5 +131,23 @@ describe('VersionChecker', () => {
     it('should throw error when getting ref fails', () => __awaiter(void 0, void 0, void 0, function* () {
         mockGetRef.mockRejectedValue(new Error('Ref Error'));
         yield expect(checker.checkVersion(mockDependency)).rejects.toThrow('Failed to check version for actions/checkout: Error: Ref Error');
+    }));
+    it('should handle multiple tags and pick the most recent one', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockListTags.mockResolvedValue({
+            data: [
+                { name: 'v4.2.2', created_at: '2024-03-01T00:00:00Z' },
+                { name: 'v4.2.1', created_at: '2024-02-01T00:00:00Z' },
+                { name: 'v4.2.0', created_at: '2024-01-01T00:00:00Z' }
+            ]
+        });
+        const result = yield checker.checkVersion(mockDependency);
+        expect(result.latestVersion).toBe('v4.2.2');
+        expect(mockListTags).toHaveBeenCalledWith({
+            owner: 'actions',
+            repo: 'checkout',
+            per_page: 1,
+            sort: 'created',
+            direction: 'desc'
+        });
     }));
 });

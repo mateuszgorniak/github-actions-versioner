@@ -65,4 +65,20 @@ describe('FileLister', () => {
         fileLister.listWorkflowFiles();
         expect(fs.existsSync).toHaveBeenCalledWith(expect.stringContaining(customPath));
     });
+    it('should use absolute path as is when provided', () => {
+        const absolutePath = '/home/runner/work/repo/.github/workflows';
+        fileLister = new file_lister_1.FileLister({ basePath: absolutePath });
+        fileLister.listWorkflowFiles();
+        expect(fs.existsSync).toHaveBeenCalledWith(absolutePath);
+    });
+    it('should handle relative path by joining with cwd', () => {
+        const relativePath = 'custom/path';
+        fileLister = new file_lister_1.FileLister({ basePath: relativePath });
+        fileLister.listWorkflowFiles();
+        expect(fs.existsSync).toHaveBeenCalledWith(path.join(process.cwd(), relativePath));
+    });
+    it('should handle default path by joining with cwd', () => {
+        fileLister.listWorkflowFiles();
+        expect(fs.existsSync).toHaveBeenCalledWith(path.join(process.cwd(), '.github/workflows'));
+    });
 });
