@@ -30,7 +30,7 @@ The action checks each unique combination of owner/repo/version separately. This
 ### Status Messages
 
 - ✅ up to date: The version you're using is the latest available
-- ⚠️ update available: A newer version is available
+- ⚠️ update available: A newer version is available (shows current and latest version with their SHAs)
 - ❌ version check failed: Could not compare versions (e.g., due to network issues or invalid version)
 
 ## Usage
@@ -65,9 +65,11 @@ Found 12 action dependencies
 Found 8 unique actions
 
 Dependency Report:
-actions/checkout@v2 (workflow.yml:1) - ⚠️ update available: v2 -> v3
-actions/setup-node@v3 (workflow.yml:2) - ✅ up to date
-actions/cache@v2 (workflow.yml:3) - ⚠️ update available: v2 -> v3
+
+actions/checkout@v3 (workflow1.yml:1) - ❌ version check failed - could not compare versions
+actions/checkout@v4 (workflow2.yml:2) - ✅ up to date
+actions/setup-node@v3 (workflow1.yml:3) - ⚠️ update available: v3 (abc123) -> v4.2.2 (def456)
+actions/cache@v2 (workflow2.yml:3) - ⚠️ update available: v2 (123abc) -> v3 (456def)
 ```
 
 ## 🛠️ Development

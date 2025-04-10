@@ -1,0 +1,41 @@
+name: Version Manager
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  manage-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd actions/versioner
+          npm ci
+
+      - name: Build action
+        run: |
+          cd actions/versioner
+          npm run build
+          npm run package
+
+      - name: Update v1 tag
+        run: |
+          git tag -f v1
+          git push -f origin v1
