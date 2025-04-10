@@ -56,4 +56,4 @@ To work on a specific action:
 
 ## ❓ Questions?
 
-If you have any questions, feel free to ask them in an issue or contact us directly.
+If you have any questions, feel free to open an issue or contact the maintainers.
