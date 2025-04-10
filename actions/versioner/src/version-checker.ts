@@ -47,7 +47,9 @@ export class VersionChecker {
       const { data } = await this.octokit.repos.listTags({
         owner: dependency.owner,
         repo: dependency.repo,
-        per_page: 1
+        per_page: 1,
+        sort: 'created',
+        direction: 'desc'
       });
 
       if (!data || data.length === 0) {
@@ -55,6 +57,7 @@ export class VersionChecker {
       }
 
       const latestVersion = data[0].name;
+
       const latestVersionSha = await this.getRefSha(
         dependency.owner,
         dependency.repo,

@@ -36,6 +36,9 @@ The action checks each unique combination of owner/repo/version separately. This
 ## 🚀 Quick Start
 
 ```yaml
+- name: Checkout repository
+  uses: actions/checkout@v4
+
 - name: Check GitHub Actions Versions
   uses: mateuszgorniak/github-actions-versioner/actions/versioner@v1
   with:
