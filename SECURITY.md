@@ -16,6 +16,18 @@ The GitHub Actions Versioner implements the following security measures:
 - No external dependencies are required
 - Runs entirely within GitHub's infrastructure
 - Regular security updates are applied to dependencies
+- Verifies commit SHAs for each specific version of an action
+- Handles version checking failures gracefully with clear error messages
+- Maintains separate checks for different versions of the same action
+
+## API Security
+
+The action uses the following GitHub API endpoints securely:
+- `GET /repos/{owner}/{repo}/tags` - to fetch the latest version
+- `GET /repos/{owner}/{repo}/git/ref/{ref}` - to verify commit SHAs
+- All API calls are rate-limited and authenticated
+- Failed API calls are handled with appropriate error messages
+- Network errors and invalid versions are reported clearly
 
 ## Reporting a Vulnerability
 
@@ -32,6 +44,8 @@ We regularly:
 - Update dependencies to their latest secure versions
 - Review and audit the codebase for potential security issues
 - Monitor GitHub's security advisories for related vulnerabilities
+- Test version checking behavior with different action formats
+- Verify SHA comparison logic for accuracy
 
 ## Security Contact
 

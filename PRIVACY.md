@@ -10,13 +10,28 @@ The GitHub Actions Versioner:
 - Does not transmit any data to external services
 - Only processes workflow files within your repository
 - Does not log or store any sensitive information
+- Processes each version of GitHub Actions independently
+- Verifies commit SHAs for version comparison
+- Maintains references to file locations where actions are used
 
 ## GitHub API Usage
 
 The action uses GitHub's public API to:
 - Read workflow files from your repository
 - Check for the latest versions of GitHub Actions
+- Verify commit SHAs for specific versions
 - No write operations are performed on your repository
+- All API calls are authenticated and rate-limited
+- Failed API calls are handled without storing error details
+
+## Data Processing
+
+The action processes the following data:
+- Workflow file contents (in memory only)
+- GitHub Actions version information
+- Commit SHAs for version verification
+- File locations and line numbers where actions are used
+- All data is processed in memory and not persisted
 
 ## Data Storage
 
