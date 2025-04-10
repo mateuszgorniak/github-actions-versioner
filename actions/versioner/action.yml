@@ -2,6 +2,10 @@ name: 'GitHub Actions Versioner'
 description: 'Checks if your GitHub Actions dependencies are up to date and suggests updates'
 author: 'Mateusz Górniak'
 
+branding:
+  icon: 'package'
+  color: 'blue'
+
 inputs:
   token:
     description: 'GitHub token for API access'
