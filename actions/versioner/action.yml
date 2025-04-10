@@ -8,8 +8,8 @@ inputs:
     required: true
   workflow_path:
     description: 'Path to workflow files'
-    required: true
-    default: '.github/workflows'
+    required: false
+    default: '${{ github.workspace }}/.github/workflows'
 
 outputs:
   outdated_actions:

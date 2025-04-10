@@ -40,7 +40,6 @@ The action checks each unique combination of owner/repo/version separately. This
   uses: mateuszgorniak/github-actions-versioner/actions/versioner@v1
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
-    workflow_path: .github/workflows  # Optional, defaults to .github/workflows
 ```
 
 ## 📋 Configuration
@@ -50,7 +49,7 @@ The action checks each unique combination of owner/repo/version separately. This
 | Name | Description | Required | Default |
 |------|-------------|----------|---------|
 | `token` | GitHub token for API access | Yes | - |
-| `workflow_path` | Path to workflow files | No | `.github/workflows` |
+| `workflow_path` | Path to workflow files. Can be either absolute (starting with `/`) or relative to the workspace root. | No | `${{ github.workspace }}/.github/workflows` |
 
 ### Outputs
 
@@ -58,6 +57,13 @@ The action checks each unique combination of owner/repo/version separately. This
 |------|-------------|
 | `status` | Status of the check |
 | `outdated_actions` | List of outdated actions |
+
+### Path Handling
+
+The action handles paths in the following way:
+- If an absolute path is provided (starting with `/`), it is used as is
+- If a relative path is provided, it is joined with the workspace root
+- If no path is provided, it defaults to `${{ github.workspace }}/.github/workflows`
 
 ## 📊 Example Output
 

@@ -20,7 +20,11 @@ export class FileLister {
    * @returns Array of file paths relative to the workspace root
    */
   public listWorkflowFiles(): string[] {
-    const workflowPath = path.join(process.cwd(), this.basePath);
+    // If the path is absolute (starts with /), use it as is
+    // Otherwise, join it with the current working directory
+    const workflowPath = this.basePath.startsWith('/')
+      ? this.basePath
+      : path.join(process.cwd(), this.basePath);
 
     if (!fs.existsSync(workflowPath)) {
       throw new Error(`Workflow directory not found at: ${workflowPath}`);
