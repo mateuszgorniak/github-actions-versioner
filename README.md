@@ -85,19 +85,29 @@ We're proud to be used by various organizations and projects. Here are some of t
 1. Install dependencies:
    ```bash
    cd actions/versioner
-   npm install
+   npm ci
    ```
 
 2. Build the action:
    ```bash
-   npm run build
-   npm run package
-   ```
+   # Clean previous builds
+   rm -rf node_modules dist
+   npm cache clean --force
 
-3. Run tests:
-   ```bash
+   # Install dependencies
+   npm ci
+
+   # Build TypeScript code
+   npm run build
+
+   # Package the action with all dependencies
+   npm run package
+
+   # Run tests
    npm test
    ```
+
+3. The action is now ready to use. The bundled file will be in `dist/index.js`.
 
 ## 🤝 Contributing
 
