@@ -15,7 +15,13 @@ jest.mock('@octokit/rest', () => ({
   Octokit: jest.fn().mockImplementation(() => ({
     repos: {
       listTags: jest.fn().mockResolvedValue({
-        data: [{ name: 'v1' }]
+        data: [{ name: 'v4' }]
+      })
+    },
+    git: {
+      getRef: jest.fn().mockImplementation(({ ref }) => {
+        const sha = ref === 'tags/v4' ? 'sha-v4' : 'sha-v3';
+        return Promise.resolve({ data: { object: { sha } } });
       })
     }
   }))
@@ -57,6 +63,7 @@ describe('GitHub Actions Versioner', () => {
     expect(core.setOutput).toHaveBeenCalledWith('status', 'success');
     expect(core.info).toHaveBeenCalledWith('Found 1 workflow files');
     expect(core.info).toHaveBeenCalledWith('Found 1 action dependencies');
+    expect(core.info).toHaveBeenCalledWith(expect.stringContaining('update available: v3 (sha-v3) -> v4 (sha-v4)'));
   });
 
   it('should handle errors gracefully', async () => {

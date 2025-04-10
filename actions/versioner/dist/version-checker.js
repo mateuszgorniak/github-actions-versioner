@@ -17,11 +17,27 @@ class VersionChecker {
             auth: token
         });
     }
-    /**
-     * Checks if the given dependency is up to date
-     * @param dependency Compressed dependency to check
-     * @returns Promise with version check result
-     */
+    getRefSha(owner, repo, ref) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { data } = yield this.octokit.git.getRef({
+                    owner,
+                    repo,
+                    ref: `tags/${ref}`
+                });
+                return data.object.sha;
+            }
+            catch (error) {
+                // If tag not found, try to get the ref as a branch
+                const { data } = yield this.octokit.git.getRef({
+                    owner,
+                    repo,
+                    ref: `heads/${ref}`
+                });
+                return data.object.sha;
+            }
+        });
+    }
     checkVersion(dependency) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -33,10 +49,17 @@ class VersionChecker {
                 if (!data || data.length === 0) {
                     throw new Error('No tags found');
                 }
+                const latestVersion = data[0].name;
+                const latestVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, latestVersion);
+                const currentVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, dependency.version);
                 return {
                     owner: dependency.owner,
                     repo: dependency.repo,
-                    latestVersion: data[0].name
+                    version: dependency.version,
+                    latestVersion,
+                    currentVersionSha,
+                    latestVersionSha,
+                    references: dependency.references
                 };
             }
             catch (error) {

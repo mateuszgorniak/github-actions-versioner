@@ -17,6 +17,22 @@ A GitHub Action that checks if your GitHub Actions dependencies are up to date a
 - Supports both version tags and branch references
 - Provides detailed output with file locations and line numbers
 
+## 🔍 Version Checking Behavior
+
+The action checks each unique combination of owner/repo/version separately. This means:
+
+- If you use the same action with different versions (e.g., `actions/checkout@v3` and `actions/checkout@v4`), each version will be checked independently
+- The status report will show whether each specific version is up to date
+- If a version check fails (e.g., due to network issues or invalid version), you'll see a "version check failed" message
+- For each version, the action compares commit SHAs to determine if an update is available
+- The report includes all locations where a specific version is used
+
+### Status Messages
+
+- ✅ up to date: The version you're using is the latest available
+- ⚠️ update available: A newer version is available
+- ❌ version check failed: Could not compare versions (e.g., due to network issues or invalid version)
+
 ## Usage
 
 ```yaml
