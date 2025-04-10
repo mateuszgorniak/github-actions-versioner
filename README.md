@@ -33,7 +33,7 @@ The action checks each unique combination of owner/repo/version separately. This
 - ⚠️ update available: A newer version is available (shows current and latest version with their SHAs)
 - ❌ version check failed: Could not compare versions (e.g., due to network issues or invalid version)
 
-## Usage
+## 🚀 Quick Start
 
 ```yaml
 - name: Check GitHub Actions Versions
@@ -43,21 +43,23 @@ The action checks each unique combination of owner/repo/version separately. This
     workflow_path: .github/workflows  # Optional, defaults to .github/workflows
 ```
 
-## Inputs
+## 📋 Configuration
+
+### Inputs
 
 | Name | Description | Required | Default |
 |------|-------------|----------|---------|
 | `token` | GitHub token for API access | Yes | - |
 | `workflow_path` | Path to workflow files | No | `.github/workflows` |
 
-## Outputs
+### Outputs
 
 | Name | Description |
 |------|-------------|
 | `status` | Status of the check |
 | `outdated_actions` | List of outdated actions |
 
-## Example Output
+## 📊 Example Output
 
 ```
 Found 5 workflow files
@@ -71,6 +73,12 @@ actions/checkout@v4 (workflow2.yml:2) - ✅ up to date
 actions/setup-node@v3 (workflow1.yml:3) - ⚠️ update available: v3 (abc123) -> v4.2.2 (def456)
 actions/cache@v2 (workflow2.yml:3) - ⚠️ update available: v2 (123abc) -> v3 (456def)
 ```
+
+## 🏢 Who's Using This?
+
+We're proud to be used by various organizations and projects. Here are some of them:
+
+- [Your organization/project name here] - Add your organization or project by submitting a PR!
 
 ## 🛠️ Development
 
@@ -90,10 +98,6 @@ actions/cache@v2 (workflow2.yml:3) - ⚠️ update available: v2 (123abc) -> v3 
    ```bash
    npm test
    ```
-
-## 🤔 Who's using this?
-
-- [Your project name here] - Add your project by submitting a PR!
 
 ## 🤝 Contributing
 
