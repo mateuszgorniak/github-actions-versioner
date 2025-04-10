@@ -14,9 +14,16 @@ describe('DependencyVersionMerger', () => {
     },
     {
       owner: 'actions',
-      repo: 'setup-node',
+      repo: 'checkout',
       version: 'v3',
       lineNumber: 2,
+      filePath: 'workflow2.yml'
+    },
+    {
+      owner: 'actions',
+      repo: 'setup-node',
+      version: 'v3',
+      lineNumber: 3,
       filePath: 'workflow1.yml'
     }
   ];
@@ -25,16 +32,38 @@ describe('DependencyVersionMerger', () => {
     {
       owner: 'actions',
       repo: 'checkout',
+      version: 'v4',
       latestVersion: 'v4.2.2',
-      currentVersionSha: '11bd719',
-      latestVersionSha: '11bd719'
+      currentVersionSha: 'sha-v4',
+      latestVersionSha: 'sha-v4.2.2',
+      references: [{
+        filePath: 'workflow1.yml',
+        lineNumber: 1
+      }]
+    },
+    {
+      owner: 'actions',
+      repo: 'checkout',
+      version: 'v3',
+      latestVersion: 'v4.2.2',
+      currentVersionSha: 'sha-v3',
+      latestVersionSha: 'sha-v4.2.2',
+      references: [{
+        filePath: 'workflow2.yml',
+        lineNumber: 2
+      }]
     },
     {
       owner: 'actions',
       repo: 'setup-node',
+      version: 'v3',
       latestVersion: 'v3',
       currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v3'
+      latestVersionSha: 'sha-v3',
+      references: [{
+        filePath: 'workflow1.yml',
+        lineNumber: 3
+      }]
     }
   ];
 
@@ -45,16 +74,23 @@ describe('DependencyVersionMerger', () => {
   it('should merge dependencies with their latest versions', () => {
     const result = merger.mergeWithVersions(mockDependencies, mockLatestVersions);
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(3);
     expect(result[0]).toEqual({
       ...mockDependencies[0],
       latestVersion: 'v4.2.2',
-      currentVersionSha: '11bd719',
-      latestVersionSha: '11bd719',
-      isUpToDate: true
+      currentVersionSha: 'sha-v4',
+      latestVersionSha: 'sha-v4.2.2',
+      isUpToDate: false
     });
     expect(result[1]).toEqual({
       ...mockDependencies[1],
+      latestVersion: 'v4.2.2',
+      currentVersionSha: 'sha-v3',
+      latestVersionSha: 'sha-v4.2.2',
+      isUpToDate: false
+    });
+    expect(result[2]).toEqual({
+      ...mockDependencies[2],
       latestVersion: 'v3',
       currentVersionSha: 'sha-v3',
       latestVersionSha: 'sha-v3',
@@ -65,7 +101,7 @@ describe('DependencyVersionMerger', () => {
   it('should handle missing latest versions', () => {
     const result = merger.mergeWithVersions(mockDependencies, []);
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(3);
     expect(result[0].latestVersion).toBeUndefined();
     expect(result[0].currentVersionSha).toBeUndefined();
     expect(result[0].latestVersionSha).toBeUndefined();

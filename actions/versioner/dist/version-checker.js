@@ -20,35 +20,24 @@ class VersionChecker {
     getRefSha(owner, repo, ref) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // First try to get the ref as a tag
-                try {
-                    const { data } = yield this.octokit.git.getRef({
-                        owner,
-                        repo,
-                        ref: `tags/${ref}`
-                    });
-                    return data.object.sha;
-                }
-                catch (error) {
-                    // If tag not found, try to get the ref as a branch
-                    const { data } = yield this.octokit.git.getRef({
-                        owner,
-                        repo,
-                        ref: `heads/${ref}`
-                    });
-                    return data.object.sha;
-                }
+                const { data } = yield this.octokit.git.getRef({
+                    owner,
+                    repo,
+                    ref: `tags/${ref}`
+                });
+                return data.object.sha;
             }
             catch (error) {
-                throw new Error(`Failed to get SHA for ref ${ref}: ${error}`);
+                // If tag not found, try to get the ref as a branch
+                const { data } = yield this.octokit.git.getRef({
+                    owner,
+                    repo,
+                    ref: `heads/${ref}`
+                });
+                return data.object.sha;
             }
         });
     }
-    /**
-     * Checks if the given dependency is up to date by comparing commit SHAs
-     * @param dependency Compressed dependency to check
-     * @returns Promise with version check result
-     */
     checkVersion(dependency) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -62,16 +51,15 @@ class VersionChecker {
                 }
                 const latestVersion = data[0].name;
                 const latestVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, latestVersion);
-                let currentVersionSha;
-                if (dependency.version) {
-                    currentVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, dependency.version);
-                }
+                const currentVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, dependency.version);
                 return {
                     owner: dependency.owner,
                     repo: dependency.repo,
+                    version: dependency.version,
                     latestVersion,
                     currentVersionSha,
-                    latestVersionSha
+                    latestVersionSha,
+                    references: dependency.references
                 };
             }
             catch (error) {

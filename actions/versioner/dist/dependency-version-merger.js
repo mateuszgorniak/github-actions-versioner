@@ -5,10 +5,11 @@ class DependencyVersionMerger {
     mergeWithVersions(dependencies, latestVersions) {
         const versionMap = new Map();
         latestVersions.forEach(version => {
-            versionMap.set(`${version.owner}/${version.repo}`, version);
+            versionMap.set(`${version.owner}/${version.repo}/${version.version}`, version);
         });
         return dependencies.map(dep => {
-            const latestVersion = versionMap.get(`${dep.owner}/${dep.repo}`);
+            const key = `${dep.owner}/${dep.repo}/${dep.version}`;
+            const latestVersion = versionMap.get(key);
             if (!latestVersion) {
                 return Object.assign(Object.assign({}, dep), { latestVersion: undefined, currentVersionSha: undefined, latestVersionSha: undefined, isUpToDate: undefined });
             }

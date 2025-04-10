@@ -28,18 +28,38 @@ describe('VersionChecker', () => {
     const mockDependency = {
         owner: 'actions',
         repo: 'checkout',
-        version: 'v3'
+        version: 'v3',
+        references: [{
+                filePath: 'workflow.yml',
+                lineNumber: 1
+            }]
+    };
+    const branchDependency = {
+        owner: 'actions',
+        repo: 'checkout',
+        version: 'main',
+        references: [{
+                filePath: 'workflow.yml',
+                lineNumber: 2
+            }]
+    };
+    const dependencyWithoutVersion = {
+        owner: 'actions',
+        repo: 'checkout',
+        version: 'main',
+        references: [{
+                filePath: 'workflow.yml',
+                lineNumber: 3
+            }]
     };
     beforeEach(() => {
         jest.clearAllMocks();
         mockListTags.mockResolvedValue({
-            data: [
-                { name: 'v4' }
-            ]
+            data: [{ name: 'v4.2.2' }]
         });
         mockGetRef.mockImplementation(({ ref }) => {
-            if (ref === 'tags/v4')
-                return Promise.resolve({ data: { object: { sha: 'sha-v4' } } });
+            if (ref === 'tags/v4.2.2')
+                return Promise.resolve({ data: { object: { sha: 'sha-v4.2.2' } } });
             if (ref === 'tags/v3')
                 return Promise.resolve({ data: { object: { sha: 'sha-v3' } } });
             if (ref === 'heads/main')
@@ -48,14 +68,19 @@ describe('VersionChecker', () => {
         });
         checker = new version_checker_1.VersionChecker(mockToken);
     });
-    it('should check if dependency is up to date', () => __awaiter(void 0, void 0, void 0, function* () {
+    it('should check version for a tag', () => __awaiter(void 0, void 0, void 0, function* () {
         const result = yield checker.checkVersion(mockDependency);
         expect(result).toEqual({
             owner: 'actions',
             repo: 'checkout',
-            latestVersion: 'v4',
+            version: 'v3',
+            latestVersion: 'v4.2.2',
             currentVersionSha: 'sha-v3',
-            latestVersionSha: 'sha-v4'
+            latestVersionSha: 'sha-v4.2.2',
+            references: [{
+                    filePath: 'workflow.yml',
+                    lineNumber: 1
+                }]
         });
         expect(mockListTags).toHaveBeenCalledWith({
             owner: 'actions',
@@ -65,7 +90,7 @@ describe('VersionChecker', () => {
         expect(mockGetRef).toHaveBeenCalledWith({
             owner: 'actions',
             repo: 'checkout',
-            ref: 'tags/v4'
+            ref: 'tags/v4.2.2'
         });
         expect(mockGetRef).toHaveBeenCalledWith({
             owner: 'actions',
@@ -73,19 +98,19 @@ describe('VersionChecker', () => {
             ref: 'tags/v3'
         });
     }));
-    it('should handle branch references', () => __awaiter(void 0, void 0, void 0, function* () {
-        const branchDependency = {
-            owner: 'actions',
-            repo: 'checkout',
-            version: 'main'
-        };
+    it('should check version for a branch', () => __awaiter(void 0, void 0, void 0, function* () {
         const result = yield checker.checkVersion(branchDependency);
         expect(result).toEqual({
             owner: 'actions',
             repo: 'checkout',
-            latestVersion: 'v4',
+            version: 'main',
+            latestVersion: 'v4.2.2',
             currentVersionSha: 'sha-main',
-            latestVersionSha: 'sha-v4'
+            latestVersionSha: 'sha-v4.2.2',
+            references: [{
+                    filePath: 'workflow.yml',
+                    lineNumber: 2
+                }]
         });
         expect(mockGetRef).toHaveBeenCalledWith({
             owner: 'actions',
@@ -93,30 +118,16 @@ describe('VersionChecker', () => {
             ref: 'heads/main'
         });
     }));
-    it('should handle dependency without version', () => __awaiter(void 0, void 0, void 0, function* () {
-        const dependencyWithoutVersion = {
-            owner: 'actions',
-            repo: 'checkout'
-        };
-        const result = yield checker.checkVersion(dependencyWithoutVersion);
-        expect(result).toEqual({
-            owner: 'actions',
-            repo: 'checkout',
-            latestVersion: 'v4',
-            latestVersionSha: 'sha-v4'
-        });
-        expect(mockGetRef).toHaveBeenCalledTimes(1);
+    it('should handle missing tags', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockListTags.mockResolvedValue({ data: [] });
+        yield expect(checker.checkVersion(dependencyWithoutVersion)).rejects.toThrow('No tags found');
     }));
     it('should throw error when API call fails', () => __awaiter(void 0, void 0, void 0, function* () {
         mockListTags.mockRejectedValue(new Error('API Error'));
         yield expect(checker.checkVersion(mockDependency)).rejects.toThrow('Failed to check version for actions/checkout: Error: API Error');
     }));
-    it('should throw error when no tags are found', () => __awaiter(void 0, void 0, void 0, function* () {
-        mockListTags.mockResolvedValue({ data: [] });
-        yield expect(checker.checkVersion(mockDependency)).rejects.toThrow('No tags found');
-    }));
     it('should throw error when getting ref fails', () => __awaiter(void 0, void 0, void 0, function* () {
         mockGetRef.mockRejectedValue(new Error('Ref Error'));
-        yield expect(checker.checkVersion(mockDependency)).rejects.toThrow('Failed to check version for actions/checkout: Error: Failed to get SHA for ref v4: Error: Ref Error');
+        yield expect(checker.checkVersion(mockDependency)).rejects.toThrow('Failed to check version for actions/checkout: Error: Ref Error');
     }));
 });

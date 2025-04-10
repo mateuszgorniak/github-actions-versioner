@@ -15,11 +15,13 @@ export class DependencyVersionMerger {
   ): DependencyWithVersion[] {
     const versionMap = new Map<string, LatestVersion>();
     latestVersions.forEach(version => {
-      versionMap.set(`${version.owner}/${version.repo}`, version);
+      versionMap.set(`${version.owner}/${version.repo}/${version.version}`, version);
     });
 
     return dependencies.map(dep => {
-      const latestVersion = versionMap.get(`${dep.owner}/${dep.repo}`);
+      const key = `${dep.owner}/${dep.repo}/${dep.version}`;
+      const latestVersion = versionMap.get(key);
+
       if (!latestVersion) {
         return {
           ...dep,
@@ -29,6 +31,7 @@ export class DependencyVersionMerger {
           isUpToDate: undefined
         };
       }
+
       return {
         ...dep,
         latestVersion: latestVersion.latestVersion,

@@ -1,25 +1,17 @@
 import { UniqueDependency } from './dependency-lister';
 import { Octokit } from '@octokit/rest';
 
-export interface VersionCheckResult {
-  owner: string;
-  repo: string;
-  currentVersions: string[];
-  latestVersion: string;
-  isUpToDate: boolean;
-  references: Array<{
-    filePath: string;
-    lineNumber: number;
-    version: string;
-  }>;
-}
-
 export interface LatestVersion {
   owner: string;
   repo: string;
+  version: string;
   latestVersion: string;
-  currentVersionSha?: string;
+  currentVersionSha: string;
   latestVersionSha: string;
+  references: Array<{
+    filePath: string;
+    lineNumber: number;
+  }>;
 }
 
 export class VersionChecker {
@@ -33,33 +25,23 @@ export class VersionChecker {
 
   private async getRefSha(owner: string, repo: string, ref: string): Promise<string> {
     try {
-      // First try to get the ref as a tag
-      try {
-        const { data } = await this.octokit.git.getRef({
-          owner,
-          repo,
-          ref: `tags/${ref}`
-        });
-        return data.object.sha;
-      } catch (error) {
-        // If tag not found, try to get the ref as a branch
-        const { data } = await this.octokit.git.getRef({
-          owner,
-          repo,
-          ref: `heads/${ref}`
-        });
-        return data.object.sha;
-      }
+      const { data } = await this.octokit.git.getRef({
+        owner,
+        repo,
+        ref: `tags/${ref}`
+      });
+      return data.object.sha;
     } catch (error) {
-      throw new Error(`Failed to get SHA for ref ${ref}: ${error}`);
+      // If tag not found, try to get the ref as a branch
+      const { data } = await this.octokit.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${ref}`
+      });
+      return data.object.sha;
     }
   }
 
-  /**
-   * Checks if the given dependency is up to date by comparing commit SHAs
-   * @param dependency Compressed dependency to check
-   * @returns Promise with version check result
-   */
   public async checkVersion(dependency: UniqueDependency): Promise<LatestVersion> {
     try {
       const { data } = await this.octokit.repos.listTags({
@@ -79,21 +61,20 @@ export class VersionChecker {
         latestVersion
       );
 
-      let currentVersionSha: string | undefined;
-      if (dependency.version) {
-        currentVersionSha = await this.getRefSha(
-          dependency.owner,
-          dependency.repo,
-          dependency.version
-        );
-      }
+      const currentVersionSha = await this.getRefSha(
+        dependency.owner,
+        dependency.repo,
+        dependency.version
+      );
 
       return {
         owner: dependency.owner,
         repo: dependency.repo,
+        version: dependency.version,
         latestVersion,
         currentVersionSha,
-        latestVersionSha
+        latestVersionSha,
+        references: dependency.references
       };
     } catch (error) {
       throw new Error(
