@@ -1,10 +1,11 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/actions/versioner"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 4
     labels:
       - "dependencies"
       - "security"
+      - "npm"
