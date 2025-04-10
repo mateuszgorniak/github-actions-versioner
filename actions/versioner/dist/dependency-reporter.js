@@ -3,22 +3,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DependencyReporter = void 0;
 class DependencyReporter {
     report(dependencies) {
-        const reportLines = [];
+        const lines = [];
         dependencies.forEach(dep => {
             var _a, _b;
-            let status;
-            if (dep.isUpToDate === undefined) {
-                status = '❌ version check failed - could not compare versions';
+            const currentVersion = dep.version;
+            const latestVersion = dep.latestVersion;
+            const currentSha = ((_a = dep.currentVersionSha) === null || _a === void 0 ? void 0 : _a.substring(0, 7)) || 'unknown';
+            const latestSha = ((_b = dep.latestVersionSha) === null || _b === void 0 ? void 0 : _b.substring(0, 7)) || 'unknown';
+            let status = '';
+            if (dep.error) {
+                status = `⚠️ error: ${dep.error}`;
             }
             else if (dep.isUpToDate) {
                 status = '✅ up to date';
             }
             else {
-                status = `⚠️ update available: ${dep.version} (${(_a = dep.currentVersionSha) === null || _a === void 0 ? void 0 : _a.substring(0, 7)}) -> ${dep.latestVersion} (${(_b = dep.latestVersionSha) === null || _b === void 0 ? void 0 : _b.substring(0, 7)})`;
+                status = `⚠️ update available: ${currentVersion} (${currentSha}) -> ${latestVersion} (${latestSha})`;
             }
-            reportLines.push(`${dep.owner}/${dep.repo}@${dep.version} (${dep.filePath}:${dep.lineNumber}) - ${status}`);
+            const line = `${dep.owner}/${dep.repo}@${dep.version} (${dep.filePath}:${dep.lineNumber}) - ${status}`;
+            lines.push(line);
         });
-        return reportLines.join('\n');
+        return lines.join('\n');
     }
 }
 exports.DependencyReporter = DependencyReporter;

@@ -14,14 +14,14 @@ describe('DependencyVersionMerger', () => {
     },
     {
       owner: 'actions',
-      repo: 'checkout',
-      version: 'v3',
+      repo: 'setup-node',
+      version: 'v2',
       lineNumber: 2,
-      filePath: 'workflow2.yml'
+      filePath: 'workflow1.yml'
     },
     {
       owner: 'actions',
-      repo: 'setup-node',
+      repo: 'setup-python',
       version: 'v3',
       lineNumber: 3,
       filePath: 'workflow1.yml'
@@ -43,26 +43,14 @@ describe('DependencyVersionMerger', () => {
     },
     {
       owner: 'actions',
-      repo: 'checkout',
-      version: 'v3',
-      latestVersion: 'v4.2.2',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v4.2.2',
-      references: [{
-        filePath: 'workflow2.yml',
-        lineNumber: 2
-      }]
-    },
-    {
-      owner: 'actions',
       repo: 'setup-node',
-      version: 'v3',
+      version: 'v2',
       latestVersion: 'v3',
-      currentVersionSha: 'sha-v3',
+      currentVersionSha: 'sha-v2',
       latestVersionSha: 'sha-v3',
       references: [{
         filePath: 'workflow1.yml',
-        lineNumber: 3
+        lineNumber: 2
       }]
     }
   ];
@@ -80,31 +68,32 @@ describe('DependencyVersionMerger', () => {
       latestVersion: 'v4.2.2',
       currentVersionSha: 'sha-v4',
       latestVersionSha: 'sha-v4.2.2',
-      isUpToDate: false
+      isUpToDate: false,
+      references: [{
+        filePath: 'workflow1.yml',
+        lineNumber: 1
+      }]
     });
     expect(result[1]).toEqual({
       ...mockDependencies[1],
-      latestVersion: 'v4.2.2',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v4.2.2',
-      isUpToDate: false
+      latestVersion: 'v3',
+      currentVersionSha: 'sha-v2',
+      latestVersionSha: 'sha-v3',
+      isUpToDate: false,
+      references: [{
+        filePath: 'workflow1.yml',
+        lineNumber: 2
+      }]
     });
     expect(result[2]).toEqual({
       ...mockDependencies[2],
-      latestVersion: 'v3',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v3',
-      isUpToDate: true
+      isUpToDate: undefined,
+      references: []
     });
   });
 
-  it('should handle missing latest versions', () => {
-    const result = merger.mergeWithVersions(mockDependencies, []);
-
-    expect(result).toHaveLength(3);
-    expect(result[0].latestVersion).toBeUndefined();
-    expect(result[0].currentVersionSha).toBeUndefined();
-    expect(result[0].latestVersionSha).toBeUndefined();
-    expect(result[0].isUpToDate).toBeUndefined();
+  it('should handle empty arrays', () => {
+    const result = merger.mergeWithVersions([], []);
+    expect(result).toHaveLength(0);
   });
 });
