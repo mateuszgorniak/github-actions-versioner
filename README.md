@@ -37,7 +37,7 @@ The action checks each unique combination of owner/repo/version separately. This
 
 ```yaml
 - name: Check GitHub Actions Versions
-  uses: mateuszgorniak/github-actions-versioner@v1
+  uses: mateuszgorniak/github-actions-versioner/actions/versioner@v1
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
     workflow_path: .github/workflows  # Optional, defaults to .github/workflows
