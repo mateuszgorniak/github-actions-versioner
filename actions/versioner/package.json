@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "type": "commonjs",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "package": "ncc build --source-map",

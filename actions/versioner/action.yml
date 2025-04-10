@@ -18,5 +18,5 @@ outputs:
     description: 'Overall status of the check (success/failure)'
 
 runs:
-  using: 'node20'
+  using: 'node22'
   main: 'dist/index.js'

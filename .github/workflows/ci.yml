@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: actions/versioner/package-lock.json
 
@@ -29,6 +29,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Package
+        run: npm run package
 
       - name: Run tests
         run: npm test
