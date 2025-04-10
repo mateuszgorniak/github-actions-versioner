@@ -1,0 +1,18 @@
+name: Test Version Checking
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  test-version-checking:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test Version Checker
+        uses: ./actions/versioner
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_path: .github/workflows/test-cases

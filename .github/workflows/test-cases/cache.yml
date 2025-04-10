@@ -1,0 +1,12 @@
+# Test configuration for cache action
+# Tests action with additional parameters
+
+steps:
+  # Test case: Cache action with parameters
+  - name: Cache
+    uses: actions/cache@v2
+    with:
+      path: ~/.npm
+      key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      restore-keys: |
+        ${{ runner.os }}-node-

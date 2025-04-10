@@ -1,0 +1,12 @@
+# Test configuration for rollbar action
+# Tests version sorting when newer version has lower number (2.1.2 vs v1.0.0)
+
+steps:
+  # Test case: Rollbar deploy action (to verify version sorting)
+  - name: Rollbar Deploy
+    uses: rollbar/github-deploy-action@2.1.2
+    with:
+      rollbar_access_token: ${{ secrets.ROLLBAR_ACCESS_TOKEN }}
+      environment: production
+      revision: ${{ github.sha }}
+      local_username: ${{ github.actor }}
