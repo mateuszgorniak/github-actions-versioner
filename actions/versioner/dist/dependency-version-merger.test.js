@@ -7,7 +7,7 @@ describe('DependencyVersionMerger', () => {
         {
             owner: 'actions',
             repo: 'checkout',
-            version: 'v3',
+            version: 'v4',
             lineNumber: 1,
             filePath: 'workflow1.yml'
         },
@@ -23,9 +23,9 @@ describe('DependencyVersionMerger', () => {
         {
             owner: 'actions',
             repo: 'checkout',
-            latestVersion: 'v4',
-            currentVersionSha: 'sha-v3',
-            latestVersionSha: 'sha-v4'
+            latestVersion: 'v4.2.2',
+            currentVersionSha: '11bd719',
+            latestVersionSha: '11bd719'
         },
         {
             owner: 'actions',
@@ -41,7 +41,7 @@ describe('DependencyVersionMerger', () => {
     it('should merge dependencies with their latest versions', () => {
         const result = merger.mergeWithVersions(mockDependencies, mockLatestVersions);
         expect(result).toHaveLength(2);
-        expect(result[0]).toEqual(Object.assign(Object.assign({}, mockDependencies[0]), { latestVersion: 'v4', currentVersionSha: 'sha-v3', latestVersionSha: 'sha-v4', isUpToDate: false }));
+        expect(result[0]).toEqual(Object.assign(Object.assign({}, mockDependencies[0]), { latestVersion: 'v4.2.2', currentVersionSha: '11bd719', latestVersionSha: '11bd719', isUpToDate: true }));
         expect(result[1]).toEqual(Object.assign(Object.assign({}, mockDependencies[1]), { latestVersion: 'v3', currentVersionSha: 'sha-v3', latestVersionSha: 'sha-v3', isUpToDate: true }));
     });
     it('should handle missing latest versions', () => {

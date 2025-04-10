@@ -9,7 +9,10 @@ class DependencyVersionMerger {
         });
         return dependencies.map(dep => {
             const latestVersion = versionMap.get(`${dep.owner}/${dep.repo}`);
-            return Object.assign(Object.assign({}, dep), { latestVersion: latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.latestVersion, currentVersionSha: latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.currentVersionSha, latestVersionSha: latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.latestVersionSha, isUpToDate: latestVersion ? dep.version === latestVersion.latestVersion : undefined });
+            if (!latestVersion) {
+                return Object.assign(Object.assign({}, dep), { latestVersion: undefined, currentVersionSha: undefined, latestVersionSha: undefined, isUpToDate: undefined });
+            }
+            return Object.assign(Object.assign({}, dep), { latestVersion: latestVersion.latestVersion, currentVersionSha: latestVersion.currentVersionSha, latestVersionSha: latestVersion.latestVersionSha, isUpToDate: latestVersion.currentVersionSha === latestVersion.latestVersionSha });
         });
     }
 }

@@ -8,7 +8,7 @@ describe('DependencyVersionMerger', () => {
     {
       owner: 'actions',
       repo: 'checkout',
-      version: 'v3',
+      version: 'v4',
       lineNumber: 1,
       filePath: 'workflow1.yml'
     },
@@ -25,9 +25,9 @@ describe('DependencyVersionMerger', () => {
     {
       owner: 'actions',
       repo: 'checkout',
-      latestVersion: 'v4',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v4'
+      latestVersion: 'v4.2.2',
+      currentVersionSha: '11bd719',
+      latestVersionSha: '11bd719'
     },
     {
       owner: 'actions',
@@ -48,10 +48,10 @@ describe('DependencyVersionMerger', () => {
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
       ...mockDependencies[0],
-      latestVersion: 'v4',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v4',
-      isUpToDate: false
+      latestVersion: 'v4.2.2',
+      currentVersionSha: '11bd719',
+      latestVersionSha: '11bd719',
+      isUpToDate: true
     });
     expect(result[1]).toEqual({
       ...mockDependencies[1],

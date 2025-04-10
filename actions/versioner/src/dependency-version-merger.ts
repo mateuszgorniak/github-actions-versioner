@@ -20,12 +20,21 @@ export class DependencyVersionMerger {
 
     return dependencies.map(dep => {
       const latestVersion = versionMap.get(`${dep.owner}/${dep.repo}`);
+      if (!latestVersion) {
+        return {
+          ...dep,
+          latestVersion: undefined,
+          currentVersionSha: undefined,
+          latestVersionSha: undefined,
+          isUpToDate: undefined
+        };
+      }
       return {
         ...dep,
-        latestVersion: latestVersion?.latestVersion,
-        currentVersionSha: latestVersion?.currentVersionSha,
-        latestVersionSha: latestVersion?.latestVersionSha,
-        isUpToDate: latestVersion ? dep.version === latestVersion.latestVersion : undefined
+        latestVersion: latestVersion.latestVersion,
+        currentVersionSha: latestVersion.currentVersionSha,
+        latestVersionSha: latestVersion.latestVersionSha,
+        isUpToDate: latestVersion.currentVersionSha === latestVersion.latestVersionSha
       };
     });
   }
