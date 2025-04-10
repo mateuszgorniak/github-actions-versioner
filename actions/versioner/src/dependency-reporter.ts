@@ -1,24 +1,27 @@
 import { DependencyWithVersion } from './dependency-version-merger';
 
 export class DependencyReporter {
-  report(dependencies: DependencyWithVersion[]): string {
-    const reportLines: string[] = [];
+  public report(dependencies: DependencyWithVersion[]): string {
+    if (dependencies.length === 0) {
+      return 'No dependencies found';
+    }
 
-    dependencies.forEach(dep => {
-      let status: string;
-      if (dep.isUpToDate === undefined) {
-        status = '❌ version check failed - could not compare versions';
-      } else if (dep.isUpToDate) {
-        status = '✅ up to date';
-      } else {
-        status = `⚠️ update available: ${dep.version} (${dep.currentVersionSha?.substring(0, 7)}) -> ${dep.latestVersion} (${dep.latestVersionSha?.substring(0, 7)})`;
-      }
+    return dependencies.map(dep => this.formatDependency(dep)).join('\n');
+  }
 
-      reportLines.push(
-        `${dep.owner}/${dep.repo}@${dep.version} (${dep.filePath}:${dep.lineNumber}) - ${status}`
-      );
-    });
+  private formatDependency(dep: DependencyWithVersion): string {
+    let status = '';
+    if (dep.error) {
+      status = `⚠️ error: ${dep.error}`;
+    } else if (dep.isUpToDate) {
+      status = '✅ up to date';
+    } else {
+      const currentSha = dep.currentVersionSha?.substring(0, 7) || 'unknown';
+      const latestSha = dep.latestVersionSha?.substring(0, 7) || 'unknown';
+      status = `⚠️ update available: ${dep.version} (${currentSha}) -> ${dep.latestVersion} (${latestSha})`;
+    }
 
-    return reportLines.join('\n');
+    const reference = dep.references[0] || { filePath: 'unknown', lineNumber: 0 };
+    return `${dep.owner}/${dep.repo}@${dep.version} (${reference.filePath}:${reference.lineNumber}) - ${status}`;
   }
 }

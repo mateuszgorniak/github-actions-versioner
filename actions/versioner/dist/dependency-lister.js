@@ -1,31 +1,33 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DependencyLister = void 0;
+const dependency_analyzer_1 = require("./dependency-analyzer");
+const file_lister_1 = require("./file-lister");
 class DependencyLister {
-    listUniqueDependencies(dependencies) {
-        const uniqueMap = new Map();
-        dependencies.forEach(dep => {
-            const key = `${dep.owner}/${dep.repo}/${dep.version}`;
-            const existing = uniqueMap.get(key);
-            if (existing) {
-                existing.references.push({
-                    filePath: dep.filePath,
-                    lineNumber: dep.lineNumber
+    constructor(options = {}, dependencyAnalyzer, fileLister) {
+        this.dependencyAnalyzer = dependencyAnalyzer || new dependency_analyzer_1.DependencyAnalyzer();
+        this.fileLister = fileLister || new file_lister_1.FileLister(options);
+    }
+    listUniqueDependencies() {
+        const files = this.fileLister.listWorkflowFiles();
+        const allDependencies = files.flatMap(file => this.dependencyAnalyzer.analyzeWorkflowFile(file));
+        const uniqueDependencies = new Map();
+        allDependencies.forEach(dependency => {
+            const key = `${dependency.owner}/${dependency.repo}@${dependency.version}`;
+            if (!uniqueDependencies.has(key)) {
+                uniqueDependencies.set(key, {
+                    owner: dependency.owner,
+                    repo: dependency.repo,
+                    version: dependency.version,
+                    references: dependency.references
                 });
             }
             else {
-                uniqueMap.set(key, {
-                    owner: dep.owner,
-                    repo: dep.repo,
-                    version: dep.version,
-                    references: [{
-                            filePath: dep.filePath,
-                            lineNumber: dep.lineNumber
-                        }]
-                });
+                const existing = uniqueDependencies.get(key);
+                existing.references.push(...dependency.references);
             }
         });
-        return Array.from(uniqueMap.values());
+        return Array.from(uniqueDependencies.values());
     }
 }
 exports.DependencyLister = DependencyLister;
