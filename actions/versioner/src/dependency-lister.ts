@@ -1,41 +1,40 @@
-import { ActionDependency } from './dependency-analyzer';
-
-export interface UniqueDependency {
-  owner: string;
-  repo: string;
-  version: string;
-  references: Array<{
-    filePath: string;
-    lineNumber: number;
-  }>;
-}
+import { DependencyAnalyzer } from './dependency-analyzer';
+import { FileLister, FileListerOptions } from './file-lister';
+import { ActionDependency, FileReference } from './types';
 
 export class DependencyLister {
-  listUniqueDependencies(dependencies: ActionDependency[]): UniqueDependency[] {
-    const uniqueMap = new Map<string, UniqueDependency>();
+  private dependencyAnalyzer: DependencyAnalyzer;
+  private fileLister: FileLister;
 
-    dependencies.forEach(dep => {
-      const key = `${dep.owner}/${dep.repo}/${dep.version}`;
-      const existing = uniqueMap.get(key);
+  constructor(
+    options: FileListerOptions = {},
+    dependencyAnalyzer?: DependencyAnalyzer,
+    fileLister?: FileLister
+  ) {
+    this.dependencyAnalyzer = dependencyAnalyzer || new DependencyAnalyzer();
+    this.fileLister = fileLister || new FileLister(options);
+  }
 
-      if (existing) {
-        existing.references.push({
-          filePath: dep.filePath,
-          lineNumber: dep.lineNumber
+  listUniqueDependencies(): ActionDependency[] {
+    const files = this.fileLister.listWorkflowFiles();
+    const allDependencies = files.flatMap(file => this.dependencyAnalyzer.analyzeWorkflowFile(file));
+    const uniqueDependencies = new Map<string, ActionDependency>();
+
+    allDependencies.forEach(dependency => {
+      const key = `${dependency.owner}/${dependency.repo}@${dependency.version}`;
+      if (!uniqueDependencies.has(key)) {
+        uniqueDependencies.set(key, {
+          owner: dependency.owner,
+          repo: dependency.repo,
+          version: dependency.version,
+          references: dependency.references
         });
       } else {
-        uniqueMap.set(key, {
-          owner: dep.owner,
-          repo: dep.repo,
-          version: dep.version,
-          references: [{
-            filePath: dep.filePath,
-            lineNumber: dep.lineNumber
-          }]
-        });
+        const existing = uniqueDependencies.get(key)!;
+        existing.references.push(...dependency.references);
       }
     });
 
-    return Array.from(uniqueMap.values());
+    return Array.from(uniqueDependencies.values());
   }
 }

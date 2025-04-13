@@ -24,12 +24,16 @@ The action checks each unique combination of owner/repo/version separately. This
 - If you use the same action with different versions (e.g., `actions/checkout@v3` and `actions/checkout@v4`), each version will be checked independently
 - The status report will show whether each specific version is up to date
 - If a version check fails (e.g., due to network issues or invalid version), you'll see a "version check failed" message
-- For each version, the action compares commit SHAs to determine if an update is available
+- For each version, the action first compares commit SHAs:
+  - If both versions point to the same commit, they are considered equal regardless of version numbers
+  - If commits differ, the action compares versions using semantic versioning rules
+  - For non-semver versions (like branches or custom tags), the action uses commit dates for comparison
 - The report includes all locations where a specific version is used
+- When the same commit is referenced by different version tags (e.g., `v4` and `v4.2.2`), the action will show your current version as up to date
 
 ### Status Messages
 
-- ✅ up to date: The version you're using is the latest available
+- ✅ up to date: The version you're using is the latest available or points to the same commit as the latest version
 - ⚠️ update available: A newer version is available (shows current and latest version with their SHAs)
 - ❌ version check failed: Could not compare versions (e.g., due to network issues or invalid version)
 

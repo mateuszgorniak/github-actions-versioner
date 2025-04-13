@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { FileLister } from './file-lister';
 import { DependencyAnalyzer } from './dependency-analyzer';
 import { DependencyLister } from './dependency-lister';
-import { VersionChecker } from './version-checker';
+import { VersionVerifier } from './version-checker';
 import { DependencyVersionMerger } from './dependency-version-merger';
 import { DependencyReporter } from './dependency-reporter';
 
@@ -13,8 +13,8 @@ export async function run(): Promise<void> {
 
     const fileLister = new FileLister({ basePath: workflowPath });
     const analyzer = new DependencyAnalyzer();
-    const lister = new DependencyLister();
-    const checker = new VersionChecker(token);
+    const lister = new DependencyLister({ basePath: workflowPath }, analyzer, fileLister);
+    const verifier = new VersionVerifier(token);
     const merger = new DependencyVersionMerger();
     const reporter = new DependencyReporter();
 
@@ -22,24 +22,22 @@ export async function run(): Promise<void> {
     const workflowFiles = fileLister.listWorkflowFiles();
     core.info(`Found ${workflowFiles.length} workflow files`);
 
-    // 2. Analyze dependencies in each file
-    const allDependencies = workflowFiles.flatMap(file =>
-      analyzer.analyzeWorkflowFile(file)
-    );
+    // 2. Get all dependencies
+    const allDependencies = workflowFiles.flatMap(file => analyzer.analyzeWorkflowFile(file));
     core.info(`Found ${allDependencies.length} action dependencies`);
 
     // 3. Get unique dependencies
-    const uniqueDependencies = lister.listUniqueDependencies(allDependencies);
+    const uniqueDependencies = lister.listUniqueDependencies();
     core.info(`Found ${uniqueDependencies.length} unique action dependencies`);
 
     // 4. Check versions
     const latestVersions = await Promise.all(
-      uniqueDependencies.map(dep => checker.checkVersion(dep))
+      uniqueDependencies.map(dep => verifier.checkVersion(dep))
     );
 
     // 5. Merge dependencies with their latest versions
     const dependenciesWithVersions = merger.mergeWithVersions(
-      allDependencies,
+      uniqueDependencies,
       latestVersions
     );
 
@@ -49,6 +47,7 @@ export async function run(): Promise<void> {
     core.info(report);
 
     // 7. Set outputs
+    // 6. Set outputs
     const outdatedActions = dependenciesWithVersions.filter(
       dep => dep.latestVersion && !dep.isUpToDate
     );

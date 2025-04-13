@@ -1,43 +1,77 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const dependency_lister_1 = require("./dependency-lister");
+const dependency_analyzer_1 = require("./dependency-analyzer");
+const file_lister_1 = require("./file-lister");
+jest.mock('./dependency-analyzer');
+jest.mock('./file-lister');
 describe('DependencyLister', () => {
     let lister;
-    const mockDependencies = [
-        {
-            owner: 'actions',
-            repo: 'checkout',
-            version: 'v4',
-            lineNumber: 1,
-            filePath: 'workflow1.yml'
-        },
-        {
-            owner: 'actions',
-            repo: 'checkout',
-            version: 'v4',
-            lineNumber: 2,
-            filePath: 'workflow2.yml'
-        },
-        {
-            owner: 'actions',
-            repo: 'checkout',
-            version: 'v3',
-            lineNumber: 3,
-            filePath: 'workflow3.yml'
-        },
-        {
-            owner: 'actions',
-            repo: 'setup-node',
-            version: 'v3',
-            lineNumber: 4,
-            filePath: 'workflow1.yml'
-        }
-    ];
+    let mockDependencyAnalyzer;
+    let mockFileLister;
     beforeEach(() => {
-        lister = new dependency_lister_1.DependencyLister();
+        jest.resetAllMocks();
+        mockDependencyAnalyzer = new dependency_analyzer_1.DependencyAnalyzer();
+        mockFileLister = new file_lister_1.FileLister();
+        lister = new dependency_lister_1.DependencyLister({}, mockDependencyAnalyzer, mockFileLister);
+    });
+    it('should list unique dependencies', () => {
+        const mockFiles = ['workflow1.yml', 'workflow2.yml'];
+        const mockDependency = {
+            owner: 'actions',
+            repo: 'checkout',
+            version: 'v3',
+            references: [{ filePath: 'workflow1.yml', lineNumber: 1 }]
+        };
+        mockFileLister.listWorkflowFiles.mockReturnValue(mockFiles);
+        mockDependencyAnalyzer.analyzeWorkflowFile
+            .mockReturnValueOnce([mockDependency])
+            .mockReturnValueOnce([mockDependency]);
+        const result = lister.listUniqueDependencies();
+        expect(result).toHaveLength(1);
+        expect(result[0].references).toHaveLength(2);
+        expect(mockDependencyAnalyzer.analyzeWorkflowFile).toHaveBeenCalledTimes(2);
+    });
+    it('should handle empty dependencies', () => {
+        mockFileLister.listWorkflowFiles.mockReturnValue([]);
+        const result = lister.listUniqueDependencies();
+        expect(result).toEqual([]);
+        expect(mockDependencyAnalyzer.analyzeWorkflowFile).not.toHaveBeenCalled();
     });
     it('should list unique dependencies with their references', () => {
-        const result = lister.listUniqueDependencies(mockDependencies);
+        const mockFiles = ['workflow1.yml', 'workflow2.yml', 'workflow3.yml'];
+        const mockDependencies1 = [{
+                owner: 'actions',
+                repo: 'checkout',
+                version: 'v4',
+                references: [{ filePath: 'workflow1.yml', lineNumber: 1 }]
+            }];
+        const mockDependencies2 = [{
+                owner: 'actions',
+                repo: 'checkout',
+                version: 'v4',
+                references: [{ filePath: 'workflow2.yml', lineNumber: 2 }]
+            }];
+        const mockDependencies3 = [
+            {
+                owner: 'actions',
+                repo: 'checkout',
+                version: 'v3',
+                references: [{ filePath: 'workflow3.yml', lineNumber: 3 }]
+            },
+            {
+                owner: 'actions',
+                repo: 'setup-node',
+                version: 'v3',
+                references: [{ filePath: 'workflow1.yml', lineNumber: 4 }]
+            }
+        ];
+        mockFileLister.listWorkflowFiles.mockReturnValue(mockFiles);
+        mockDependencyAnalyzer.analyzeWorkflowFile
+            .mockReturnValueOnce(mockDependencies1)
+            .mockReturnValueOnce(mockDependencies2)
+            .mockReturnValueOnce(mockDependencies3);
+        const result = lister.listUniqueDependencies();
         expect(result).toHaveLength(3);
         // Check actions/checkout@v4
         const checkoutV4 = result.find(d => d.owner === 'actions' && d.repo === 'checkout' && d.version === 'v4');
@@ -56,8 +90,27 @@ describe('DependencyLister', () => {
         expect(setupNode === null || setupNode === void 0 ? void 0 : setupNode.references).toHaveLength(1);
         expect(setupNode === null || setupNode === void 0 ? void 0 : setupNode.references).toContainEqual({ filePath: 'workflow1.yml', lineNumber: 4 });
     });
-    it('should handle empty dependencies array', () => {
-        const result = lister.listUniqueDependencies([]);
-        expect(result).toHaveLength(0);
+    it('should merge duplicate dependencies', () => {
+        const mockFiles = ['workflow1.yml', 'workflow2.yml'];
+        const mockDependency1 = {
+            owner: 'actions',
+            repo: 'checkout',
+            version: 'v3',
+            references: [{ filePath: 'workflow1.yml', lineNumber: 1 }]
+        };
+        const mockDependency2 = {
+            owner: 'actions',
+            repo: 'checkout',
+            version: 'v3',
+            references: [{ filePath: 'workflow2.yml', lineNumber: 1 }]
+        };
+        mockFileLister.listWorkflowFiles.mockReturnValue(mockFiles);
+        mockDependencyAnalyzer.analyzeWorkflowFile
+            .mockReturnValueOnce([mockDependency1])
+            .mockReturnValueOnce([mockDependency2]);
+        const result = lister.listUniqueDependencies();
+        expect(result).toHaveLength(1);
+        expect(result[0].references).toHaveLength(2);
+        expect(mockDependencyAnalyzer.analyzeWorkflowFile).toHaveBeenCalledTimes(2);
     });
 });

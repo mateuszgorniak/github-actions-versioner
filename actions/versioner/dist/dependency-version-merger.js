@@ -3,17 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DependencyVersionMerger = void 0;
 class DependencyVersionMerger {
     mergeWithVersions(dependencies, latestVersions) {
-        const versionMap = new Map();
-        latestVersions.forEach(version => {
-            versionMap.set(`${version.owner}/${version.repo}/${version.version}`, version);
-        });
         return dependencies.map(dep => {
-            const key = `${dep.owner}/${dep.repo}/${dep.version}`;
-            const latestVersion = versionMap.get(key);
+            const latestVersion = latestVersions.find(v => v.owner === dep.owner && v.repo === dep.repo && v.version === dep.version);
             if (!latestVersion) {
-                return Object.assign(Object.assign({}, dep), { latestVersion: undefined, currentVersionSha: undefined, latestVersionSha: undefined, isUpToDate: undefined });
+                return Object.assign(Object.assign({}, dep), { isUpToDate: undefined, references: [] });
             }
-            return Object.assign(Object.assign({}, dep), { latestVersion: latestVersion.latestVersion, currentVersionSha: latestVersion.currentVersionSha, latestVersionSha: latestVersion.latestVersionSha, isUpToDate: latestVersion.currentVersionSha === latestVersion.latestVersionSha });
+            return Object.assign(Object.assign({}, dep), { latestVersion: latestVersion.latestVersion, currentVersionSha: latestVersion.currentVersionSha, latestVersionSha: latestVersion.latestVersionSha, isUpToDate: latestVersion.version === latestVersion.latestVersion, error: latestVersion.error, references: latestVersion.references });
         });
     }
 }

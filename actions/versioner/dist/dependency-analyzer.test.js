@@ -39,7 +39,12 @@ jest.mock('fs');
 describe('DependencyAnalyzer', () => {
     let analyzer;
     const mockFilePath = 'test.yml';
-    const mockContent = `
+    beforeEach(() => {
+        analyzer = new dependency_analyzer_1.DependencyAnalyzer();
+        jest.resetAllMocks();
+    });
+    it('should extract all action dependencies from workflow file', () => {
+        const mockContent = `
 name: Test Workflow
 on: push
 jobs:
@@ -48,49 +53,49 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-        with:
-          node-version: '16'
       - uses: some/action@v1.2.3
       - uses: another/action@main
-  `;
-    beforeEach(() => {
-        analyzer = new dependency_analyzer_1.DependencyAnalyzer();
+`;
         fs.readFileSync.mockReturnValue(mockContent);
-    });
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-    it('should extract all action dependencies from workflow file', () => {
         const dependencies = analyzer.analyzeWorkflowFile(mockFilePath);
         expect(dependencies).toHaveLength(4);
         expect(dependencies[0]).toEqual({
             owner: 'actions',
             repo: 'checkout',
             version: 'v3',
-            lineNumber: 8,
-            filePath: mockFilePath
+            references: [{
+                    filePath: mockFilePath,
+                    lineNumber: 8
+                }]
         });
         expect(dependencies[1]).toEqual({
             owner: 'actions',
             repo: 'setup-node',
             version: 'v3',
-            lineNumber: 9,
-            filePath: mockFilePath
+            references: [{
+                    filePath: mockFilePath,
+                    lineNumber: 9
+                }]
         });
         expect(dependencies[2]).toEqual({
             owner: 'some',
             repo: 'action',
             version: 'v1.2.3',
-            lineNumber: 12,
-            filePath: mockFilePath
+            references: [{
+                    filePath: mockFilePath,
+                    lineNumber: 10
+                }]
         });
         expect(dependencies[3]).toEqual({
             owner: 'another',
             repo: 'action',
             version: 'main',
-            lineNumber: 13,
-            filePath: mockFilePath
+            references: [{
+                    filePath: mockFilePath,
+                    lineNumber: 11
+                }]
         });
+        expect(fs.readFileSync).toHaveBeenCalledWith(mockFilePath, 'utf8');
     });
     it('should handle empty workflow file', () => {
         fs.readFileSync.mockReturnValue('');

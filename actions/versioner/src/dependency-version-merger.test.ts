@@ -1,110 +1,71 @@
 import { DependencyVersionMerger } from './dependency-version-merger';
-import { ActionDependency } from './dependency-analyzer';
+import { ActionDependency } from './types';
 import { LatestVersion } from './version-checker';
 
 describe('DependencyVersionMerger', () => {
   let merger: DependencyVersionMerger;
-  const mockDependencies: ActionDependency[] = [
-    {
-      owner: 'actions',
-      repo: 'checkout',
-      version: 'v4',
-      lineNumber: 1,
-      filePath: 'workflow1.yml'
-    },
-    {
-      owner: 'actions',
-      repo: 'checkout',
-      version: 'v3',
-      lineNumber: 2,
-      filePath: 'workflow2.yml'
-    },
-    {
-      owner: 'actions',
-      repo: 'setup-node',
-      version: 'v3',
-      lineNumber: 3,
-      filePath: 'workflow1.yml'
-    }
-  ];
-
-  const mockLatestVersions: LatestVersion[] = [
-    {
-      owner: 'actions',
-      repo: 'checkout',
-      version: 'v4',
-      latestVersion: 'v4.2.2',
-      currentVersionSha: 'sha-v4',
-      latestVersionSha: 'sha-v4.2.2',
-      references: [{
-        filePath: 'workflow1.yml',
-        lineNumber: 1
-      }]
-    },
-    {
-      owner: 'actions',
-      repo: 'checkout',
-      version: 'v3',
-      latestVersion: 'v4.2.2',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v4.2.2',
-      references: [{
-        filePath: 'workflow2.yml',
-        lineNumber: 2
-      }]
-    },
-    {
-      owner: 'actions',
-      repo: 'setup-node',
-      version: 'v3',
-      latestVersion: 'v3',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v3',
-      references: [{
-        filePath: 'workflow1.yml',
-        lineNumber: 3
-      }]
-    }
-  ];
 
   beforeEach(() => {
     merger = new DependencyVersionMerger();
   });
 
-  it('should merge dependencies with their latest versions', () => {
-    const result = merger.mergeWithVersions(mockDependencies, mockLatestVersions);
+  it('should merge dependencies with versions', () => {
+    const dependencies: ActionDependency[] = [
+      {
+        owner: 'actions',
+        repo: 'checkout',
+        version: 'v3',
+        references: [{ filePath: 'workflow1.yml', lineNumber: 1 }]
+      }
+    ];
 
-    expect(result).toHaveLength(3);
+    const versions: LatestVersion[] = [
+      {
+        owner: 'actions',
+        repo: 'checkout',
+        version: 'v3',
+        latestVersion: 'v4',
+        currentVersionSha: 'abc123',
+        latestVersionSha: 'def456',
+        references: [{ filePath: 'workflow1.yml', lineNumber: 1 }],
+        isUpToDate: false
+      }
+    ];
+
+    const result = merger.mergeWithVersions(dependencies, versions);
+    expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
-      ...mockDependencies[0],
-      latestVersion: 'v4.2.2',
-      currentVersionSha: 'sha-v4',
-      latestVersionSha: 'sha-v4.2.2',
+      owner: 'actions',
+      repo: 'checkout',
+      version: 'v3',
+      latestVersion: 'v4',
+      currentVersionSha: 'abc123',
+      latestVersionSha: 'def456',
+      references: [{ filePath: 'workflow1.yml', lineNumber: 1 }],
       isUpToDate: false
-    });
-    expect(result[1]).toEqual({
-      ...mockDependencies[1],
-      latestVersion: 'v4.2.2',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v4.2.2',
-      isUpToDate: false
-    });
-    expect(result[2]).toEqual({
-      ...mockDependencies[2],
-      latestVersion: 'v3',
-      currentVersionSha: 'sha-v3',
-      latestVersionSha: 'sha-v3',
-      isUpToDate: true
     });
   });
 
-  it('should handle missing latest versions', () => {
-    const result = merger.mergeWithVersions(mockDependencies, []);
+  it('should handle missing version information', () => {
+    const dependencies: ActionDependency[] = [
+      {
+        owner: 'actions',
+        repo: 'checkout',
+        version: 'v3',
+        references: [{ filePath: 'workflow1.yml', lineNumber: 1 }]
+      }
+    ];
 
-    expect(result).toHaveLength(3);
-    expect(result[0].latestVersion).toBeUndefined();
-    expect(result[0].currentVersionSha).toBeUndefined();
-    expect(result[0].latestVersionSha).toBeUndefined();
-    expect(result[0].isUpToDate).toBeUndefined();
+    const versions: LatestVersion[] = [];
+
+    const result = merger.mergeWithVersions(dependencies, versions);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      owner: 'actions',
+      repo: 'checkout',
+      version: 'v3',
+      references: [],
+      isUpToDate: undefined
+    });
   });
 });

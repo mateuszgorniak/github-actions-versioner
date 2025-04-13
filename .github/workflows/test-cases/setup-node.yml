@@ -1,0 +1,13 @@
+# Test configuration for setup-node action
+# Tests version handling:
+# - Non-semver tag (v1)
+# - Latest semver version (v4)
+
+steps:
+  # Test case 1: Non-semver tag
+  - name: Setup Node v1
+    uses: actions/setup-node@v1
+
+  # Test case 2: Latest semver
+  - name: Setup Node v4
+    uses: actions/setup-node@v4

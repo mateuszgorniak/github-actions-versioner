@@ -9,65 +9,139 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VersionChecker = void 0;
+exports.VersionVerifier = void 0;
 const rest_1 = require("@octokit/rest");
-class VersionChecker {
+const version_comparator_1 = require("./version-comparator");
+/**
+ * Handles the complete version verification process
+ * - Manages GitHub API communication
+ * - Coordinates version verification workflow
+ * - Caches version information
+ * - Handles commit information retrieval
+ * - Determines version update strategy
+ */
+class VersionVerifier {
     constructor(token) {
-        this.octokit = new rest_1.Octokit({
-            auth: token
+        this.octokit = new rest_1.Octokit({ auth: token });
+        this.versionCache = new Map();
+    }
+    getCommitInfo(owner, repo, ref) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
+            try {
+                const { data } = yield this.octokit.repos.getCommit({
+                    owner,
+                    repo,
+                    ref
+                });
+                return {
+                    sha: data.sha,
+                    date: ((_a = data.commit.committer) === null || _a === void 0 ? void 0 : _a.date) || ((_b = data.commit.author) === null || _b === void 0 ? void 0 : _b.date) || new Date().toISOString()
+                };
+            }
+            catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(errorMessage);
+            }
         });
     }
-    getRefSha(owner, repo, ref) {
+    getVersionInfo(owner, repo, version) {
         return __awaiter(this, void 0, void 0, function* () {
+            const cacheKey = `${owner}/${repo}/${version}`;
+            if (this.versionCache.has(cacheKey)) {
+                return this.versionCache.get(cacheKey);
+            }
             try {
                 const { data } = yield this.octokit.git.getRef({
                     owner,
                     repo,
-                    ref: `tags/${ref}`
+                    ref: `tags/${version}`
                 });
-                return data.object.sha;
+                const commitInfo = yield this.getCommitInfo(owner, repo, data.object.sha);
+                const info = version_comparator_1.VersionParser.createVersionInfo(version, false, commitInfo.sha, new Date(commitInfo.date));
+                this.versionCache.set(cacheKey, info);
+                return info;
             }
             catch (error) {
-                // If tag not found, try to get the ref as a branch
-                const { data } = yield this.octokit.git.getRef({
+                try {
+                    const { data } = yield this.octokit.git.getRef({
+                        owner,
+                        repo,
+                        ref: `heads/${version}`
+                    });
+                    const commitInfo = yield this.getCommitInfo(owner, repo, data.object.sha);
+                    const info = version_comparator_1.VersionParser.createVersionInfo(version, true, commitInfo.sha, new Date(commitInfo.date));
+                    this.versionCache.set(cacheKey, info);
+                    return info;
+                }
+                catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    throw new Error(errorMessage);
+                }
+            }
+        });
+    }
+    findLatestVersion(owner, repo) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { data: tags } = yield this.octokit.repos.listTags({
                     owner,
                     repo,
-                    ref: `heads/${ref}`
+                    per_page: 100
                 });
-                return data.object.sha;
+                if (tags.length === 0) {
+                    const { data: repoInfo } = yield this.octokit.repos.get({
+                        owner,
+                        repo
+                    });
+                    return this.getVersionInfo(owner, repo, repoInfo.default_branch);
+                }
+                const versions = yield Promise.all(tags.map((tag) => __awaiter(this, void 0, void 0, function* () {
+                    const commitInfo = yield this.getCommitInfo(owner, repo, tag.commit.sha);
+                    return version_comparator_1.VersionParser.createVersionInfo(tag.name, false, tag.commit.sha, new Date(commitInfo.date));
+                })));
+                return version_comparator_1.VersionParser.findLatestVersion(versions);
+            }
+            catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(errorMessage);
             }
         });
     }
     checkVersion(dependency) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { data } = yield this.octokit.repos.listTags({
-                    owner: dependency.owner,
-                    repo: dependency.repo,
-                    per_page: 1,
-                    sort: 'created',
-                    direction: 'desc'
-                });
-                if (!data || data.length === 0) {
-                    throw new Error('No tags found');
-                }
-                const latestVersion = data[0].name;
-                const latestVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, latestVersion);
-                const currentVersionSha = yield this.getRefSha(dependency.owner, dependency.repo, dependency.version);
+                const currentVersionInfo = yield this.getVersionInfo(dependency.owner, dependency.repo, dependency.version);
+                const latestVersionInfo = yield this.findLatestVersion(dependency.owner, dependency.repo);
+                // If both versions point to the same commit, they are equal
+                const isSameCommit = currentVersionInfo.sha === latestVersionInfo.sha;
+                const isUpToDate = isSameCommit || version_comparator_1.VersionParser.compareVersionsSemver(currentVersionInfo, latestVersionInfo) >= 0;
                 return {
                     owner: dependency.owner,
                     repo: dependency.repo,
                     version: dependency.version,
-                    latestVersion,
-                    currentVersionSha,
-                    latestVersionSha,
-                    references: dependency.references
+                    latestVersion: isSameCommit ? dependency.version : latestVersionInfo.version,
+                    currentVersionSha: currentVersionInfo.sha,
+                    latestVersionSha: latestVersionInfo.sha,
+                    references: dependency.references,
+                    isUpToDate
                 };
             }
             catch (error) {
-                throw new Error(`Failed to check version for ${dependency.owner}/${dependency.repo}: ${error}`);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                return {
+                    owner: dependency.owner,
+                    repo: dependency.repo,
+                    version: dependency.version,
+                    latestVersion: dependency.version,
+                    currentVersionSha: 'unknown',
+                    latestVersionSha: 'unknown',
+                    references: dependency.references,
+                    error: errorMessage,
+                    isUpToDate: false
+                };
             }
         });
     }
 }
-exports.VersionChecker = VersionChecker;
+exports.VersionVerifier = VersionVerifier;

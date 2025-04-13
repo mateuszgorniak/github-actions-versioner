@@ -43,24 +43,26 @@ class DependencyAnalyzer {
      */
     analyzeWorkflowFile(filePath) {
         const content = fs.readFileSync(filePath, 'utf8');
-        const lines = content.split('\n');
         const dependencies = [];
-        lines.forEach((line, index) => {
-            const match = line.match(/uses:\s*([^@\s]+)@([^\s]+)/);
+        const lines = content.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(/uses:\s+([^@]+)@([^}\s]+)/);
             if (match) {
-                const [_, actionRef, version] = match;
-                const [owner, repo] = actionRef.split('/');
-                if (owner && repo) {
-                    dependencies.push({
-                        owner,
-                        repo,
-                        version,
-                        lineNumber: index + 1,
-                        filePath
-                    });
-                }
+                const [owner, repo] = match[1].split('/');
+                const version = match[2];
+                const reference = {
+                    filePath,
+                    lineNumber: i + 1
+                };
+                dependencies.push({
+                    owner,
+                    repo,
+                    version,
+                    references: [reference]
+                });
             }
-        });
+        }
         return dependencies;
     }
 }

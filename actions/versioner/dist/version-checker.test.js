@@ -12,10 +12,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const version_checker_1 = require("./version-checker");
 const mockListTags = jest.fn();
 const mockGetRef = jest.fn();
+const mockGetRepo = jest.fn();
+const mockGetBranch = jest.fn();
+const mockGetCommit = jest.fn();
 jest.mock('@octokit/rest', () => ({
     Octokit: jest.fn().mockImplementation(() => ({
         repos: {
-            listTags: mockListTags
+            listTags: mockListTags,
+            get: mockGetRepo,
+            getBranch: mockGetBranch,
+            getCommit: mockGetCommit
         },
         git: {
             getRef: mockGetRef
@@ -43,111 +49,187 @@ describe('VersionChecker', () => {
                 lineNumber: 2
             }]
     };
-    const dependencyWithoutVersion = {
-        owner: 'actions',
-        repo: 'checkout',
-        version: 'main',
-        references: [{
-                filePath: 'workflow.yml',
-                lineNumber: 3
-            }]
-    };
     beforeEach(() => {
         jest.clearAllMocks();
         mockListTags.mockResolvedValue({
-            data: [{ name: 'v4.2.2' }]
+            data: [
+                { name: 'v4.2.2', commit: { sha: 'sha-v4.2.2' } },
+                { name: 'v4.2.1', commit: { sha: 'sha-v4.2.1' } },
+                { name: 'v4.2.0', commit: { sha: 'sha-v4.2.0' } }
+            ]
         });
         mockGetRef.mockImplementation(({ ref }) => {
-            if (ref === 'tags/v4.2.2')
-                return Promise.resolve({ data: { object: { sha: 'sha-v4.2.2' } } });
-            if (ref === 'tags/v3')
-                return Promise.resolve({ data: { object: { sha: 'sha-v3' } } });
-            if (ref === 'heads/main')
-                return Promise.resolve({ data: { object: { sha: 'sha-main' } } });
+            if (ref.startsWith('tags/')) {
+                const tagName = ref.replace('tags/', '');
+                return Promise.resolve({ data: { object: { sha: `sha-${tagName}` } } });
+            }
+            if (ref.startsWith('heads/')) {
+                const branchName = ref.replace('heads/', '');
+                return Promise.resolve({ data: { object: { sha: `sha-${branchName}` } } });
+            }
             throw new Error('Not Found');
         });
-        checker = new version_checker_1.VersionChecker(mockToken);
+        mockGetCommit.mockImplementation(({ ref }) => {
+            const date = new Date();
+            if (ref === 'sha-v4.2.2')
+                date.setDate(date.getDate() - 7); // 7 days ago
+            if (ref === 'sha-v4.2.1')
+                date.setDate(date.getDate() - 14); // 14 days ago
+            if (ref === 'sha-v4.2.0')
+                date.setDate(date.getDate() - 21); // 21 days ago
+            if (ref === 'sha-v3')
+                date.setDate(date.getDate() - 30); // 30 days ago
+            if (ref === 'sha-main')
+                date.setDate(date.getDate() - 1); // 1 day ago
+            return Promise.resolve({
+                data: {
+                    sha: ref,
+                    commit: {
+                        committer: { date: date.toISOString() },
+                        author: { date: date.toISOString() }
+                    }
+                }
+            });
+        });
+        mockGetRepo.mockResolvedValue({ data: { default_branch: 'main' } });
+        mockGetBranch.mockResolvedValue({ data: { commit: { sha: 'sha-main' } } });
+        checker = new version_checker_1.VersionVerifier(mockToken);
     });
-    it('should check version for a tag', () => __awaiter(void 0, void 0, void 0, function* () {
+    it('should return highest semver version regardless of commit date', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockListTags.mockResolvedValue({
+            data: [
+                { name: 'v2.7.2', commit: { sha: 'sha-v2.7.2' } },
+                { name: 'v2.8.2', commit: { sha: 'sha-v2.8.2' } },
+                { name: 'v2.6.0', commit: { sha: 'sha-v2.6.0' } }
+            ]
+        });
+        const result = yield checker.checkVersion(mockDependency);
+        expect(result.latestVersion).toBe('v2.8.2');
+        expect(result.latestVersionSha).toBe('sha-v2.8.2');
+    }));
+    it('should not suggest update if current version is higher', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockListTags.mockResolvedValue({
+            data: [
+                { name: 'v2.7.2', commit: { sha: 'sha-v2.7.2' } },
+                { name: 'v2.8.2', commit: { sha: 'sha-v2.8.2' } },
+                { name: 'v2.9.0', commit: { sha: 'sha-v2.9.0' } }
+            ]
+        });
+        const result = yield checker.checkVersion(Object.assign(Object.assign({}, mockDependency), { version: 'v2.9.0' }));
+        expect(result.latestVersion).toBe('v2.9.0');
+        expect(result.latestVersionSha).toBe('sha-v2.9.0');
+    }));
+    it('should suggest highest semver when using branch', () => __awaiter(void 0, void 0, void 0, function* () {
+        const result = yield checker.checkVersion(branchDependency);
+        expect(result.latestVersion).toBe('v4.2.2');
+        expect(result.latestVersionSha).toBe('sha-v4.2.2');
+    }));
+    it('should handle custom tags when no semver tags exist', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockListTags.mockResolvedValue({
+            data: [
+                { name: 'stable', commit: { sha: 'sha-stable' } },
+                { name: 'latest', commit: { sha: 'sha-latest' } },
+                { name: 'v1', commit: { sha: 'sha-v1' } }
+            ]
+        });
+        const result = yield checker.checkVersion(mockDependency);
+        expect(result.latestVersion).toBe('latest');
+        expect(result.latestVersionSha).toBe('sha-latest');
+    }));
+    it('should use default branch when no tags exist', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockListTags.mockResolvedValue({ data: [] });
+        const result = yield checker.checkVersion(mockDependency);
+        expect(result.latestVersion).toBe('main');
+        expect(result.latestVersionSha).toBe('sha-main');
+    }));
+    it('should handle v-prefixed and non-v-prefixed versions', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockListTags.mockResolvedValue({
+            data: [
+                { name: '1.0.0', commit: { sha: 'sha-1.0.0' } },
+                { name: 'v2.0.0', commit: { sha: 'sha-v2.0.0' } },
+                { name: 'v1.1.0', commit: { sha: 'sha-v1.1.0' } },
+                { name: '1.0.1', commit: { sha: 'sha-1.0.1' } }
+            ]
+        });
+        const result = yield checker.checkVersion(mockDependency);
+        expect(result.latestVersion).toBe('v2.0.0');
+        expect(result.latestVersionSha).toBe('sha-v2.0.0');
+    }));
+    it('should handle API errors gracefully', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockGetRef.mockRejectedValue(new Error('API error'));
+        mockListTags.mockRejectedValue(new Error('API error'));
         const result = yield checker.checkVersion(mockDependency);
         expect(result).toEqual({
             owner: 'actions',
             repo: 'checkout',
             version: 'v3',
-            latestVersion: 'v4.2.2',
-            currentVersionSha: 'sha-v3',
-            latestVersionSha: 'sha-v4.2.2',
+            latestVersion: 'v3',
+            currentVersionSha: 'unknown',
+            latestVersionSha: 'unknown',
             references: [{
                     filePath: 'workflow.yml',
                     lineNumber: 1
-                }]
-        });
-        expect(mockListTags).toHaveBeenCalledWith({
-            owner: 'actions',
-            repo: 'checkout',
-            per_page: 1,
-            sort: 'created',
-            direction: 'desc'
-        });
-        expect(mockGetRef).toHaveBeenCalledWith({
-            owner: 'actions',
-            repo: 'checkout',
-            ref: 'tags/v4.2.2'
-        });
-        expect(mockGetRef).toHaveBeenCalledWith({
-            owner: 'actions',
-            repo: 'checkout',
-            ref: 'tags/v3'
+                }],
+            error: 'API error',
+            isUpToDate: false
         });
     }));
-    it('should check version for a branch', () => __awaiter(void 0, void 0, void 0, function* () {
-        const result = yield checker.checkVersion(branchDependency);
+    it('should handle reference not found errors gracefully', () => __awaiter(void 0, void 0, void 0, function* () {
+        mockGetRef.mockRejectedValue(new Error('Reference not found'));
+        mockListTags.mockRejectedValue(new Error('API error'));
+        const result = yield checker.checkVersion(mockDependency);
         expect(result).toEqual({
             owner: 'actions',
             repo: 'checkout',
-            version: 'main',
-            latestVersion: 'v4.2.2',
-            currentVersionSha: 'sha-main',
-            latestVersionSha: 'sha-v4.2.2',
+            version: 'v3',
+            latestVersion: 'v3',
+            currentVersionSha: 'unknown',
+            latestVersionSha: 'unknown',
             references: [{
                     filePath: 'workflow.yml',
-                    lineNumber: 2
-                }]
-        });
-        expect(mockGetRef).toHaveBeenCalledWith({
-            owner: 'actions',
-            repo: 'checkout',
-            ref: 'heads/main'
+                    lineNumber: 1
+                }],
+            error: 'Reference not found',
+            isUpToDate: false
         });
     }));
-    it('should handle missing tags', () => __awaiter(void 0, void 0, void 0, function* () {
-        mockListTags.mockResolvedValue({ data: [] });
-        yield expect(checker.checkVersion(dependencyWithoutVersion)).rejects.toThrow('No tags found');
-    }));
-    it('should throw error when API call fails', () => __awaiter(void 0, void 0, void 0, function* () {
-        mockListTags.mockRejectedValue(new Error('API Error'));
-        yield expect(checker.checkVersion(mockDependency)).rejects.toThrow('Failed to check version for actions/checkout: Error: API Error');
-    }));
-    it('should throw error when getting ref fails', () => __awaiter(void 0, void 0, void 0, function* () {
-        mockGetRef.mockRejectedValue(new Error('Ref Error'));
-        yield expect(checker.checkVersion(mockDependency)).rejects.toThrow('Failed to check version for actions/checkout: Error: Ref Error');
-    }));
-    it('should handle multiple tags and pick the most recent one', () => __awaiter(void 0, void 0, void 0, function* () {
+    it('should show same version when SHA is identical', () => __awaiter(void 0, void 0, void 0, function* () {
         mockListTags.mockResolvedValue({
             data: [
-                { name: 'v4.2.2', created_at: '2024-03-01T00:00:00Z' },
-                { name: 'v4.2.1', created_at: '2024-02-01T00:00:00Z' },
-                { name: 'v4.2.0', created_at: '2024-01-01T00:00:00Z' }
+                { name: 'v4.2.2', commit: { sha: 'same-sha' } },
+                { name: 'v4.2.1', commit: { sha: 'sha-v4.2.1' } },
+                { name: 'v4.2.0', commit: { sha: 'sha-v4.2.0' } }
             ]
         });
+        // Mock the same SHA for both current and latest version
+        mockGetRef.mockImplementation(({ ref }) => {
+            return Promise.resolve({ data: { object: { sha: 'same-sha' } } });
+        });
+        mockGetCommit.mockImplementation(({ ref }) => {
+            const date = new Date();
+            return Promise.resolve({
+                data: {
+                    sha: 'same-sha',
+                    commit: {
+                        committer: { date: date.toISOString() },
+                        author: { date: date.toISOString() }
+                    }
+                }
+            });
+        });
         const result = yield checker.checkVersion(mockDependency);
-        expect(result.latestVersion).toBe('v4.2.2');
-        expect(mockListTags).toHaveBeenCalledWith({
+        expect(result).toEqual({
             owner: 'actions',
             repo: 'checkout',
-            per_page: 1,
-            sort: 'created',
-            direction: 'desc'
+            version: 'v3',
+            latestVersion: 'v3',
+            currentVersionSha: 'same-sha',
+            latestVersionSha: 'same-sha',
+            references: [{
+                    filePath: 'workflow.yml',
+                    lineNumber: 1
+                }],
+            isUpToDate: true
         });
     }));
 });
