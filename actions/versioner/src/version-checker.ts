@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import { VersionParser } from './version-comparator';
-import { UniqueDependency, VersionInfo, CheckVersionResult } from './types';
+import { ActionDependency, VersionInfo, CheckVersionResult } from './types';
 
 /**
  * Handles the complete version verification process
@@ -115,7 +115,7 @@ export class VersionVerifier {
     }
   }
 
-  async checkVersion(dependency: UniqueDependency): Promise<CheckVersionResult> {
+  async checkVersion(dependency: ActionDependency): Promise<CheckVersionResult> {
     try {
       const currentVersionInfo = await this.getVersionInfo(dependency.owner, dependency.repo, dependency.version);
       const latestVersionInfo = await this.findLatestVersion(dependency.owner, dependency.repo);

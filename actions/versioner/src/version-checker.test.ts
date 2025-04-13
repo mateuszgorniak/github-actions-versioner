@@ -1,5 +1,5 @@
 import { VersionVerifier } from './version-checker';
-import { UniqueDependency } from './types';
+import { ActionDependency } from './types';
 import { Octokit } from '@octokit/rest';
 
 const mockListTags = jest.fn();
@@ -26,7 +26,7 @@ describe('VersionChecker', () => {
   let checker: VersionVerifier;
   const mockToken = 'test-token';
 
-  const mockDependency: UniqueDependency = {
+  const mockDependency: ActionDependency = {
     owner: 'actions',
     repo: 'checkout',
     version: 'v3',
@@ -36,7 +36,7 @@ describe('VersionChecker', () => {
     }]
   };
 
-  const branchDependency: UniqueDependency = {
+  const branchDependency: ActionDependency = {
     owner: 'actions',
     repo: 'checkout',
     version: 'main',

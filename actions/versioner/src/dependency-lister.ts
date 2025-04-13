@@ -1,6 +1,6 @@
 import { DependencyAnalyzer } from './dependency-analyzer';
 import { FileLister, FileListerOptions } from './file-lister';
-import { UniqueDependency, ActionDependency, FileReference } from './types';
+import { ActionDependency, FileReference } from './types';
 
 export class DependencyLister {
   private dependencyAnalyzer: DependencyAnalyzer;
@@ -15,10 +15,10 @@ export class DependencyLister {
     this.fileLister = fileLister || new FileLister(options);
   }
 
-  listUniqueDependencies(): UniqueDependency[] {
+  listUniqueDependencies(): ActionDependency[] {
     const files = this.fileLister.listWorkflowFiles();
     const allDependencies = files.flatMap(file => this.dependencyAnalyzer.analyzeWorkflowFile(file));
-    const uniqueDependencies = new Map<string, UniqueDependency>();
+    const uniqueDependencies = new Map<string, ActionDependency>();
 
     allDependencies.forEach(dependency => {
       const key = `${dependency.owner}/${dependency.repo}@${dependency.version}`;

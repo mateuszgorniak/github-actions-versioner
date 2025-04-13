@@ -43,13 +43,3 @@ export interface ActionDependency {
   version: string;
   references: FileReference[];
 }
-
-/**
- * Represents a unique dependency with its references
- */
-export interface UniqueDependency {
-  owner: string;
-  repo: string;
-  version: string;
-  references: FileReference[];
-}

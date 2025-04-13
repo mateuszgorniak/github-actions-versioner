@@ -1,5 +1,5 @@
 import { DependencyLister } from './dependency-lister';
-import { ActionDependency, UniqueDependency, FileReference } from './types';
+import { ActionDependency, FileReference } from './types';
 import { DependencyAnalyzer } from './dependency-analyzer';
 import { FileLister } from './file-lister';
 
