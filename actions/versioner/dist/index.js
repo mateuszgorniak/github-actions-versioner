@@ -28019,12 +28019,14 @@ class VersionVerifier {
             try {
                 const currentVersionInfo = yield this.getVersionInfo(dependency.owner, dependency.repo, dependency.version);
                 const latestVersionInfo = yield this.findLatestVersion(dependency.owner, dependency.repo);
-                const isUpToDate = version_comparator_1.VersionParser.compareVersions(currentVersionInfo.version, latestVersionInfo.version) >= 0;
+                // If both versions point to the same commit, they are equal
+                const isSameCommit = currentVersionInfo.sha === latestVersionInfo.sha;
+                const isUpToDate = isSameCommit || version_comparator_1.VersionParser.compareVersionsSemver(currentVersionInfo, latestVersionInfo) >= 0;
                 return {
                     owner: dependency.owner,
                     repo: dependency.repo,
                     version: dependency.version,
-                    latestVersion: latestVersionInfo.version,
+                    latestVersion: isSameCommit ? dependency.version : latestVersionInfo.version,
                     currentVersionSha: currentVersionInfo.sha,
                     latestVersionSha: latestVersionInfo.sha,
                     references: dependency.references,

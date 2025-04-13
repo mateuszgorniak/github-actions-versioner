@@ -211,4 +211,48 @@ describe('VersionChecker', () => {
       isUpToDate: false
     });
   });
+
+  it('should show same version when SHA is identical', async () => {
+    mockListTags.mockResolvedValue({
+      data: [
+        { name: 'v4.2.2', commit: { sha: 'same-sha' } },
+        { name: 'v4.2.1', commit: { sha: 'sha-v4.2.1' } },
+        { name: 'v4.2.0', commit: { sha: 'sha-v4.2.0' } }
+      ]
+    });
+
+    // Mock the same SHA for both current and latest version
+    mockGetRef.mockImplementation(({ ref }) => {
+      return Promise.resolve({ data: { object: { sha: 'same-sha' } } });
+    });
+
+    mockGetCommit.mockImplementation(({ ref }) => {
+      const date = new Date();
+      return Promise.resolve({
+        data: {
+          sha: 'same-sha',
+          commit: {
+            committer: { date: date.toISOString() },
+            author: { date: date.toISOString() }
+          }
+        }
+      });
+    });
+
+    const result = await checker.checkVersion(mockDependency);
+
+    expect(result).toEqual({
+      owner: 'actions',
+      repo: 'checkout',
+      version: 'v3',
+      latestVersion: 'v3',
+      currentVersionSha: 'same-sha',
+      latestVersionSha: 'same-sha',
+      references: [{
+        filePath: 'workflow.yml',
+        lineNumber: 1
+      }],
+      isUpToDate: true
+    });
+  });
 });
