@@ -44,7 +44,7 @@ The action checks each unique combination of owner/repo/version separately. This
   uses: actions/checkout@v4
 
 - name: Check GitHub Actions Versions
-  uses: mateuszgorniak/github-actions-versioner/actions/versioner@v1
+  uses: mateuszgorniak/github-actions-versioner@v1
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -97,36 +97,25 @@ We're proud to be used by various organizations and projects. Here are some of t
 
 1. Install dependencies:
    ```bash
-   cd actions/versioner
-   npm ci
+   npm install
    ```
 
-2. Build the action:
+2. Build the project:
    ```bash
-   # Clean previous builds
-   rm -rf node_modules dist
-   npm cache clean --force
-
-   # Install dependencies
-   npm ci
-
-   # Build TypeScript code
    npm run build
+   ```
 
-   # Package the action with all dependencies
-   npm run package
-
-   # Run tests
+3. Run tests:
+   ```bash
    npm test
    ```
 
-3. The action is now ready to use. The bundled file will be in `dist/index.js`.
+4. Package the action:
+   ```bash
+   npm run package
+   ```
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
