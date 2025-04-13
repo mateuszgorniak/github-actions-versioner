@@ -1,0 +1,26 @@
+name: 'GitHub Actions Versioner'
+description: 'Checks if your GitHub Actions dependencies are up to date and suggests updates'
+author: 'Mateusz Górniak'
+
+branding:
+  icon: 'package'
+  color: 'blue'
+
+inputs:
+  token:
+    description: 'GitHub token for API access'
+    required: true
+  workflow_path:
+    description: 'Path to workflow files'
+    required: false
+    default: '${{ github.workspace }}/.github/workflows'
+
+outputs:
+  outdated_actions:
+    description: 'JSON array of outdated actions with their current and latest versions'
+  status:
+    description: 'Overall status of the check (success/failure)'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

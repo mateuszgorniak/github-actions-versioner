@@ -1,0 +1,32 @@
+{
+  "name": "github-actions-versioner",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "package": "ncc build --source-map",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@octokit/rest": "^21.1.1",
+    "@types/js-yaml": "^4.0.9",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.14.0",
+    "@types/semver": "^7.7.0",
+    "@vercel/ncc": "^0.38.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  }
+}

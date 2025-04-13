@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Test Version Checker
-        uses: ./actions/versioner
+        uses: ./
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           workflow_path: .github/workflows/test-cases
