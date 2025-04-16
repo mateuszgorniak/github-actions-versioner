@@ -17,6 +17,10 @@ A GitHub Action that checks if your GitHub Actions dependencies are up to date a
 - Supports both version tags and branch references
 - Provides detailed output with file locations and line numbers
 
+## 📝 Blog Post
+
+Check out the [article on dev.to](https://dev.to/mateuszgorniak/building-a-github-actions-version-checker-with-cursor-ai-5-lessons-learned-3861) about building this tool and lessons learned about version comparison in GitHub Actions.
+
 ## 🔍 Version Checking Behavior
 
 The action checks each unique combination of owner/repo/version separately. This means:
