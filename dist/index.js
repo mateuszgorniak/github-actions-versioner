@@ -27677,7 +27677,7 @@ class DependencyReporter {
         var _a, _b;
         let status = '';
         if (dep.error) {
-            status = `⚠️ error: ${dep.error}`;
+            status = `❌ error: ${dep.error}`;
         }
         else if (dep.isUpToDate) {
             status = '✅ up to date';

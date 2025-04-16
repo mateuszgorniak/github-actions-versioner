@@ -56,7 +56,7 @@ describe('DependencyReporter', () => {
                 error: 'Reference not found'
             }];
         const report = reporter.report(dependencies);
-        expect(report).toBe('actions/checkout@v3 (workflow.yml:1) - ⚠️ error: Reference not found');
+        expect(report).toBe('actions/checkout@v3 (workflow.yml:1) - ❌ error: Reference not found');
     });
     it('should handle multiple dependencies', () => {
         const dependencies = [
@@ -104,6 +104,6 @@ describe('DependencyReporter', () => {
         const report = reporter.report(dependencies);
         expect(report).toBe('actions/checkout@v3 (workflow.yml:1) - ✅ up to date\n' +
             'actions/setup-node@v2 (workflow.yml:2) - ⚠️ update available: v2 (abcdef1) -> v3 (fedcba0)\n' +
-            'actions/upload-artifact@v1 (workflow.yml:3) - ⚠️ error: API Error');
+            'actions/upload-artifact@v1 (workflow.yml:3) - ❌ error: API Error');
     });
 });
