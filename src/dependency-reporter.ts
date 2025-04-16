@@ -12,7 +12,7 @@ export class DependencyReporter {
   private formatDependency(dep: DependencyWithVersion): string {
     let status = '';
     if (dep.error) {
-      status = `⚠️ error: ${dep.error}`;
+      status = `❌ error: ${dep.error}`;
     } else if (dep.isUpToDate) {
       status = '✅ up to date';
     } else {
